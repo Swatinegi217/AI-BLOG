@@ -1,0 +1,51 @@
+*{
+  margin: 0;
+  padding: 0;
+}
+
+body{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+  overflow-x: hidden;
+  background-color: #000;
+  color: #fff;
+}
+
+html{
+  overflow-x: hidden;
+}
+
+h1{
+  font-size: 25px;
+}
+p{
+  margin: 10px 0px;
+}
+
+.container {
+  background-color: transparent; /* Remove background */
+  color: white; /* Make text white */
+}
+
+
+#blog-content {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+  color: white; /* for screen */
+}
+
+
+#markdown-content {
+  page-break-inside: auto;
+}
+
+#markdown-content h1,
+#markdown-content h2,
+#markdown-content p {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
