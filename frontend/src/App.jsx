@@ -84,7 +84,7 @@ const App = () => {
   const publishToDevto = async () => {
     try {
       const title = extractTitle(data); // <-- Extract title from markdown
-      const res = await fetch("http://localhost:5000/api/devto/publish", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/devto/publish`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
