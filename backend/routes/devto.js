@@ -3,7 +3,11 @@ const router = express.Router();
 const Blog = require("../models/Blog");
 const axios = require("axios");
 
+<<<<<<< HEAD
 
+=======
+// POST /api/devto/publish
+>>>>>>> 8697d41b686a449a538caa8e1b8a2c5147ff83f1
 router.post("/publish", async (req, res) => {
   const { title, markdown, tags } = req.body;
 
@@ -40,6 +44,7 @@ router.post("/publish", async (req, res) => {
     res.status(500).json({ error: "Failed to publish" });
   }
 });
+<<<<<<< HEAD
   
 
 // Schedule blog
@@ -61,5 +66,7 @@ router.post("/schedule", async (req, res) => {
   }
 });
 
+=======
+>>>>>>> 8697d41b686a449a538caa8e1b8a2c5147ff83f1
 
 module.exports = router;
