@@ -3,13 +3,9 @@ const router = express.Router();
 const Blog = require("../models/Blog");
 const axios = require("axios");
 
-<<<<<<< HEAD
-
-=======
 // POST /api/devto/publish
->>>>>>> 8697d41b686a449a538caa8e1b8a2c5147ff83f1
 router.post("/publish", async (req, res) => {
-  const { title, markdown, tags } = req.body;
+  const { title, markdown, tags, image } = req.body; // ✅ include image
 
   try {
     const response = await axios.post("https://dev.to/api/articles", {
@@ -17,7 +13,8 @@ router.post("/publish", async (req, res) => {
         title,
         published: true,
         body_markdown: markdown,
-        tags
+        tags,
+        main_image: image // ✅ Dev.to uses `main_image` key
       }
     }, {
       headers: {
@@ -33,7 +30,9 @@ router.post("/publish", async (req, res) => {
       markdown,
       tags,
       devtoUrl,
-      status: "published"
+      image,
+      status: "published",
+      published: true
     });
 
     await blog.save();
@@ -44,29 +43,27 @@ router.post("/publish", async (req, res) => {
     res.status(500).json({ error: "Failed to publish" });
   }
 });
-<<<<<<< HEAD
-  
 
-// Schedule blog
+// POST /api/devto/schedule
 router.post("/schedule", async (req, res) => {
-  try {
-    const { title, markdown, tags, scheduledAt } = req.body;
+  const { title, markdown, tags, scheduledAt, image } = req.body; // ✅ include image
 
+  try {
     const blog = await Blog.create({
       title,
       markdown,
       tags,
       scheduledAt,
-      published: false
+      image,
+      published: false,
+      status: "scheduled"
     });
 
     res.status(201).json({ message: "Blog scheduled", blog });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error scheduling blog:", err.message);
+    res.status(500).json({ error: "Failed to schedule blog" });
   }
 });
-
-=======
->>>>>>> 8697d41b686a449a538caa8e1b8a2c5147ff83f1
 
 module.exports = router;
