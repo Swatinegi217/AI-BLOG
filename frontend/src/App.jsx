@@ -8,7 +8,7 @@ import { downloadBlog } from './component/downloadBlog';
 import { FaRegCalendarAlt } from "react-icons/fa";
 import remarkGfm from "remark-gfm";
 
-const IMGBB_API_KEY = "18539e79130230a4a5139d566b0360cc"; 
+const IMGBB_API_KEY = "18539e79130230a4a5139d566b0360cc";
 
 const App = () => {
   const [screen, setScreen] = useState(1);
@@ -21,7 +21,7 @@ const App = () => {
   const [editedContent, setEditedContent] = useState("");
   const [downloadFormat, setDownloadFormat] = useState('pdf');
   const dateInputRef = useRef(null);
- const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [imageURL, setImageURL] = useState("");
 
   const ai = new GoogleGenAI({ apiKey: "AIzaSyATJ_H0Y-45tIQo62Aise4ICzLJWeawJto" });
@@ -50,18 +50,29 @@ const App = () => {
 
       let blogContent = response.text;
 
-      // Inject image before Introduction or after title
       if (imageURL) {
         const imageMarkdown = `\n\n![Uploaded Image](${imageURL})\n\n`;
-        const introIndex = blogContent.search(/##\s*Introduction/i);
+        const lines = blogContent.split('\n');
+
+        const introIndex = lines.findIndex(line =>
+          line.trim().toLowerCase().startsWith("## introduction")
+        );
+
         if (introIndex !== -1) {
-          blogContent =
-            blogContent.slice(0, introIndex) +
-            imageMarkdown +
-            blogContent.slice(introIndex);
+          let insertIndex = lines.length;
+          for (let i = introIndex + 1; i < lines.length; i++) {
+            if (lines[i].trim().startsWith("## ")) {
+              insertIndex = i;
+              break;
+            }
+          }
+          lines.splice(insertIndex, 0, imageMarkdown);
         } else {
-          blogContent = blogContent.replace(/^# .+/, match => `${match}${imageMarkdown}`);
+          const titleIndex = lines.findIndex(line => line.startsWith("# "));
+          lines.splice(titleIndex + 1, 0, imageMarkdown);
         }
+
+        blogContent = lines.join('\n');
       }
 
       setData(blogContent);
@@ -143,6 +154,7 @@ const App = () => {
     setSelectedFile(file);
 
     if (file.type.startsWith("image/")) {
+      // Upload to ImgBB
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64 = reader.result.split(',')[1];
@@ -156,7 +168,7 @@ const App = () => {
           });
 
           const data = await res.json();
-          if (data && data.data && data.data.url) {
+          if (data?.data?.url) {
             setImageURL(data.data.url);
             console.log("✅ ImgBB URL:", data.data.url);
           } else {
@@ -168,13 +180,12 @@ const App = () => {
         }
       };
       reader.readAsDataURL(file);
-    } else if (file.name.endsWith(".txt") || file.name.endsWith(".md")) {
-      const text = await file.text();
-      setText(text);
     } else {
-      alert("Unsupported file type.");
+      // Non-image file (e.g., .txt, .docx, .pdf, etc.)
+      alert(`📄 File "${file.name}" uploaded successfully.`);
     }
   };
+
 
   return (
     <>
@@ -226,6 +237,23 @@ const App = () => {
               Submit
             </button>
           </form>
+
+          {selectedFile && (
+            <div className="absolute bottom-10 text-white text-sm">
+              <p className="text-white">
+                Uploaded: <strong>{selectedFile.name}</strong>
+                {selectedFile.type.startsWith("image/") ? " 🖼️" : " 📄"}
+              </p>
+
+              {selectedFile.type.startsWith("image/") && imageURL && (
+                <img
+                  src={imageURL}
+                  alt="Preview"
+                  className="mt-2 max-w-[200px] rounded-lg"
+                />
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <div className="container py-[30px] px-[100px]">
@@ -258,7 +286,8 @@ const App = () => {
                           <img
                             {...props}
                             alt={props.alt || "Image"}
-                            className="rounded-xl my-4 max-w-full"
+                            className="rounded-xl my-4 mx-auto"
+                            style={{ display: "block", width: "500px", height: "auto" }}
                           />
                         );
                       },
@@ -268,13 +297,6 @@ const App = () => {
                   </Markdown>
                 )}
               </div>
-
-              {imageURL && (
-                <div className="my-4">
-                  <p className="text-white">Preview:</p>
-                  <img src={imageURL} alt="Uploaded Preview" className="rounded-lg max-w-xs" />
-                </div>
-              )}
 
               <div className="flex gap-4 items-center flex-wrap">
                 <button onClick={genearteBlogContent} className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Re-Generate</button>
@@ -292,7 +314,8 @@ const App = () => {
                     downloadBlog({
                       content: editedContent || data,
                       title: text,
-                      format: downloadFormat
+                      format: downloadFormat,
+                      image: imageURL
                     })
                   }
                   disabled={!data}
