@@ -2,7 +2,8 @@ import React, { useState, useRef } from 'react';
 import "./App.css";
 import { IoMdArrowRoundBack } from 'react-icons/io';
 import { GoogleGenAI } from "@google/genai";
-import { CircleLoader } from "react-spinners";
+import { DNA } from 'react-loader-spinner';
+
 import Markdown from 'react-markdown';
 import { downloadBlog } from './component/downloadBlog';
 import { FaRegCalendarAlt } from "react-icons/fa";
@@ -23,6 +24,8 @@ const App = () => {
   const dateInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageURL, setImageURL] = useState("");
+  const [isPublishing, setIsPublishing] = useState(false);
+
 
   const ai = new GoogleGenAI({ apiKey: "AIzaSyATJ_H0Y-45tIQo62Aise4ICzLJWeawJto" });
 
@@ -87,35 +90,40 @@ const App = () => {
     return match ? match[1].trim() : "Untitled Post";
   };
 
-  const publishToDevto = async () => {
-    try {
-      const title = extractTitle(data);
-      const cleanedContent = (editedContent || data)
-        .split('\n')
-        .filter(line =>
-          !line.toLowerCase().startsWith('**meta description') &&
-          !line.toLowerCase().startsWith('**keywords') &&
-          !line.toLowerCase().startsWith('**slug')
-        )
-        .join('\n');
 
-      const res = await fetch("http://localhost:5000/api/devto/publish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          markdown: cleanedContent,
-          tags: ["ai", "blog", "seo"],
-          image: imageURL
-        })
-      });
+const publishToDevto = async () => {
+  setIsPublishing(true); 
 
-      const result = await res.json();
-      alert("Published successfully: " + result.url);
-    } catch (err) {
-      alert("Failed to publish: " + err.message);
-    }
-  };
+  try {
+    const title = extractTitle(data);
+    const cleanedContent = (editedContent || data)
+      .split('\n')
+      .filter(line =>
+        !line.toLowerCase().startsWith('**meta description') &&
+        !line.toLowerCase().startsWith('**keywords') &&
+        !line.toLowerCase().startsWith('**slug')
+      )
+      .join('\n');
+
+    const res = await fetch("http://localhost:5000/api/devto/publish", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        markdown: cleanedContent,
+        tags: ["ai", "blog", "seo"],
+        image: imageURL
+      })
+    });
+ 
+    const result = await res.json();
+    alert("Published successfully: " + result.url);
+  } catch (err) {
+    alert("Failed to publish: " + err.message);
+  }
+
+  setIsPublishing(false); // Done
+};
 
   const scheduleBlog = async () => {
     if (!scheduledAt) {
@@ -187,6 +195,17 @@ const App = () => {
   };
 
 
+
+  {isPublishing && (
+  <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+    <div className="bg-white px-8 py-6 rounded-xl shadow-xl text-center">
+      <p className="text-xl font-semibold mb-2">🚀 Publishing your blog...</p>
+      <p className="text-gray-600 animate-pulse">Please wait a moment</p>
+    </div>
+  </div>
+)}
+
+
   return (
     <>
       {screen === 1 ? (
@@ -241,7 +260,7 @@ const App = () => {
           {selectedFile && (
             <div className="absolute bottom-10 text-white text-sm">
               <p className="text-white">
-                Uploaded: <strong>{selectedFile.name}</strong>
+                Attached: <strong>{selectedFile.name}</strong>
                 {selectedFile.type.startsWith("image/") ? " 🖼️" : " 📄"}
               </p>
 
@@ -257,10 +276,24 @@ const App = () => {
         </div>
       ) : (
         <div className="container py-[30px] px-[100px]">
+
+
+
+
+
           {loading ? (
-            <div className='fixed top-0 left-0 flex items-center justify-center h-screen w-screen'>
-              <CircleLoader color="#74f210" size={150} aria-label="Loading Spinner" />
+            <div className='fixed top-0 left-0 flex items-center justify-center h-screen w-screen bg-black bg-opacity-70 z-50'>
+              <DNA
+                visible={true}
+                height="120"
+                width="120"
+                ariaLabel="dna-loading"
+                wrapperClass="dna-wrapper"
+              />
             </div>
+
+
+
           ) : (
             <div>
               <p className='font-bold text-[20px] mb-7 flex items-center gap-[10px]'>
@@ -298,51 +331,58 @@ const App = () => {
                 )}
               </div>
 
-              <div className="flex gap-4 items-center flex-wrap">
-                <button onClick={genearteBlogContent} className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">Re-Generate</button>
+              <div className="flex gap-4 flex-wrap items-center mt-6">
+                <button
+                  onClick={genearteBlogContent}
+                  className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-semibold px-5 py-2 rounded-xl shadow-md hover:from-yellow-500 hover:to-yellow-700 transition duration-300"
+                >
+                  🔄 Re-Generate
+                </button>
 
                 <select
-                  className="border px-4 py-2 rounded text-black"
+                  className="border px-4 py-2 rounded-xl text-black bg-white shadow-sm focus:ring-2 focus:ring-yellow-400"
                   onChange={(e) => setDownloadFormat(e.target.value)}
                 >
                   <option value="pdf">PDF</option>
                   <option value="word">Word</option>
                 </select>
-
                 <button
                   onClick={() =>
                     downloadBlog({
                       content: editedContent || data,
                       title: text,
                       format: downloadFormat,
-                      image: imageURL
+                      image: imageURL,
                     })
                   }
                   disabled={!data}
-                  className={`px-4 py-2 rounded ${data ? "bg-green-600 hover:bg-green-700" : "bg-gray-500 cursor-not-allowed"} text-white`}
+                  className={`px-5 py-2 rounded-xl font-semibold transition duration-300 shadow-md ${data
+                    ? "bg-gradient-to-r from-green-500 to-green-700 text-white hover:from-green-600 hover:to-green-800"
+                    : "bg-gray-400 text-white cursor-not-allowed"
+                    }`}
                 >
-                  Download
+                  ⬇️ Download
                 </button>
 
                 <button
-                  onClick={publishToDevto}
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  onClick=
+                  {publishToDevto}
+                  className="bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-blue-600 hover:to-blue-800 transition duration-300"
                 >
-                  Publish to Dev.to
+                  🚀 Publish to Dev.to
                 </button>
-
                 <button
                   onClick={() => {
-                    if (editMode) {
-                      setData(editedContent);
-                    } else {
-                      setEditedContent(data);
-                    }
+                    if (editMode) setData(editedContent);
+                    else setEditedContent(data);
                     setEditMode(!editMode);
                   }}
-                  className={`px-4 py-2 rounded ${editMode ? "bg-green-700" : "bg-orange-500"} text-white hover:opacity-90`}
+                  className={`px-5 py-2 rounded-xl font-semibold shadow-md transition duration-300 ${editMode
+                    ? "bg-gradient-to-r from-green-700 to-green-900 text-white hover:from-green-800 hover:to-green-950"
+                    : "bg-gradient-to-r from-orange-500 to-orange-700 text-white hover:from-orange-600 hover:to-orange-800"
+                    }`}
                 >
-                  {editMode ? "Save" : "Edit Blog"}
+                  ✏️ {editMode ? "Save" : "Edit Blog"}
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -354,16 +394,17 @@ const App = () => {
                     onChange={(e) => setScheduledAt(e.target.value)}
                   />
 
+
                   <FaRegCalendarAlt
-                    className="text-white cursor-pointer text-xl hover:text-purple-400"
+                    className="text-white text-2xl cursor-pointer hover:text-purple-400 transition"
                     onClick={() => dateInputRef.current.showPicker()}
                   />
 
                   <button
                     onClick={scheduleBlog}
-                    className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+                    className="bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-purple-600 hover:to-purple-800 transition duration-300"
                   >
-                    Schedule Blog
+                    🗓️ Schedule Blog
                   </button>
                 </div>
               </div>
