@@ -9,6 +9,10 @@ const { publishToDevto } = require("./utils/devtoApi");
 
 dotenv.config();
 
+const cors = require('cors');
+app.use(cors({ origin: '*' }));
+
+
 const app = express();
 app.use(cors());
 app.use(express.json());

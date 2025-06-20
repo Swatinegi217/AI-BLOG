@@ -8,6 +8,8 @@ import Markdown from 'react-markdown';
 import { downloadBlog } from './component/downloadBlog';
 import { FaRegCalendarAlt } from "react-icons/fa";
 import remarkGfm from "remark-gfm";
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+
 
 const IMGBB_API_KEY = "18539e79130230a4a5139d566b0360cc";
 
