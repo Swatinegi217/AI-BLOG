@@ -219,15 +219,16 @@ const App = () => {
   return (
     <>
       {screen === 1 ? (
-        <div className="h-screen flex items-center justify-center bg-black bg-opacity-60"
+        <div
+          className="min-h-screen w-full flex items-center justify-center bg-black bg-opacity-60 px-4"
           style={{
             backgroundImage: `url('/b9.jpg')`,
-
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-          }}>
+          }}
+        >
           <form
-            className="bg-[#1f1f1f] bg-opacity-90 rounded-2xl px-4 py-3 flex items-center w-[700px]"
+            className="bg-[#1f1f1f] bg-opacity-90 rounded-xl px-4 py-4 flex flex-col sm:flex-row items-center justify-between w-full max-w-[800px] gap-3 shadow-xl"
             onSubmit={(e) => {
               e.preventDefault();
               genearteBlogContent();
@@ -237,7 +238,7 @@ const App = () => {
             <input
               type="text"
               placeholder="Ask anything"
-              className="bg-transparent flex-1 text-white text-xl placeholder-gray-400 focus:outline-none"
+              className="flex-1 w-full bg-transparent text-white text-base placeholder-gray-400 focus:outline-none border-b border-gray-600 pb-2 sm:pb-1"
               value={text}
               onChange={(e) => setText(e.target.value)}
               required
@@ -250,19 +251,17 @@ const App = () => {
               onChange={handleFileUpload}
             />
 
-            <div className="flex gap-2 ml-4">
-              <button
-                type="button"
-                onClick={() => document.getElementById('fileInput').click()}
-                className="bg-[#2e2e2e] px-4 py-1.5 rounded-xl text-lg hover:bg-[#3a3a3a]"
-              >
-                📎 Attach
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => document.getElementById('fileInput').click()}
+              className="bg-[#2e2e2e] text-white px-4 py-1.5 rounded-lg hover:bg-[#3a3a3a] w-full sm:w-auto text-sm"
+            >
+              📎 Attach
+            </button>
 
             <button
               type="submit"
-              className="ml-4 bg-white text-black px-4 py-1.5 rounded-full text-lg font-medium hover:bg-gray-200"
+              className="bg-white text-black px-4 py-1.5 rounded-full text-base font-semibold hover:bg-gray-200 w-full sm:w-auto"
             >
               Submit
             </button>
@@ -270,8 +269,8 @@ const App = () => {
 
 
           {selectedFile && (
-            <div className="absolute bottom-10 text-white text-sm">
-              <p className="text-white">
+            <div className="absolute bottom-10 text-white text-sm px-4 text-center">
+              <p>
                 Attached: <strong>{selectedFile.name}</strong>
                 {selectedFile.type.startsWith("image/") ? " 🖼️" : " 📄"}
               </p>
@@ -280,7 +279,7 @@ const App = () => {
                 <img
                   src={imageURL}
                   alt="Preview"
-                  className="mt-2 max-w-[200px] rounded-lg"
+                  className="mt-2 max-w-[200px] rounded-lg mx-auto"
                 />
               )}
             </div>
