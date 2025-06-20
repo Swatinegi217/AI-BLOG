@@ -221,7 +221,8 @@ const App = () => {
       {screen === 1 ? (
         <div className="h-screen flex items-center justify-center bg-black bg-opacity-60"
           style={{
-            backgroundImage: `url(${b9})`,
+            backgroundImage: `url('/b9.jpg')`,
+
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}>
