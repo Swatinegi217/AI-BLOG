@@ -8,6 +8,12 @@ import Markdown from 'react-markdown';
 import { downloadBlog } from './component/downloadBlog';
 import { FaRegCalendarAlt } from "react-icons/fa";
 import remarkGfm from "remark-gfm";
+import b9 from '../dist/b9.jpg';
+
+
+
+
+
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 
@@ -215,7 +221,7 @@ const App = () => {
       {screen === 1 ? (
         <div className="h-screen flex items-center justify-center bg-black bg-opacity-60"
           style={{
-            backgroundImage: `url('../public/b9.jpg')`,
+            backgroundImage: `url(${b9})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}>
