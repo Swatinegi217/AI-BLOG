@@ -227,7 +227,7 @@ const App = () => {
         <div
           className="w-full min-h-screen flex items-center justify-center"
           style={{
-            backgroundImage: `url('/b9.jpg')`,
+            backgroundImage: `url('/b3.jpg')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
             backgroundRepeat: 'no-repeat',
