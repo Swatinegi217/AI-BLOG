@@ -58,10 +58,7 @@ export const downloadBlog = async ({ content, title, format, image }) => {
       const imageUrl = image || (imageMatch ? imageMatch[1] : null);
 
 
-      // Convert markdown to plain text
-      const plainText = markdownToText(content);
-      const lines = plainText.split("\n").filter((line) => line.trim() !== "");
-      const children = [];
+                                                                                                                                                                                                                                    
 
       // Add each line as paragraph
       lines.forEach((line) => {

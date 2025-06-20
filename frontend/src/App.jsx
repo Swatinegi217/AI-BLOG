@@ -33,6 +33,8 @@ const App = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageURL, setImageURL] = useState("");
   const [isPublishing, setIsPublishing] = useState(false);
+  const [links, setLinks] = useState([""]);
+
 
 
   const ai = new GoogleGenAI({ apiKey: "AIzaSyATJ_H0Y-45tIQo62Aise4ICzLJWeawJto" });
@@ -46,13 +48,15 @@ const App = () => {
         contents: `
         You are an expert SEO blog writer and AI content strategist.
         Write a complete blog post on the topic: ${text}.
-        Return the blog in Markdown format using this structure:
+        Use these reference links (if helpful): ${links.filter(link => link).join(', ')}.
+        Return the blog in Markdown format...
+       
         ✅ Title (h1)
         ✅ Meta Description (160 char)
         ✅ Keywords (comma-separated)
         ✅ Slug (URL-friendly)
         ✅ Introduction
-        ✅ At least 3 Subheadings (##)
+        ✅ At least 3 Subheadings (##) 
         ✅ Conclusion with CTA
         ✅ Hashtags (e.g., #ai #seo #blog)
         ✅ No JSON or HTML, only Markdown
@@ -216,211 +220,245 @@ const App = () => {
   }
 
 
+
   return (
     <>
       {screen === 1 ? (
         <div
-          className="min-h-screen w-full flex items-center justify-center bg-black bg-opacity-60 px-4"
+          className="w-full min-h-screen flex items-center justify-center"
           style={{
             backgroundImage: `url('/b9.jpg')`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
           }}
         >
-          <form
-            className="bg-[#1f1f1f] bg-opacity-90 rounded-xl px-4 py-4 flex flex-col sm:flex-row items-center justify-between w-full max-w-[800px] gap-3 shadow-xl"
-            onSubmit={(e) => {
-              e.preventDefault();
-              genearteBlogContent();
-            }}
-            encType="multipart/form-data"
-          >
-            <input
-              type="text"
-              placeholder="Ask anything"
-              className="flex-1 w-full bg-transparent text-white text-base placeholder-gray-400 focus:outline-none border-b border-gray-600 pb-2 sm:pb-1"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              required
-            />
+          <div className="w-full min-h-screen bg-black bg-opacity-60 flex items-center justify-center px-4">
 
-            <input
-              type="file"
-              id="fileInput"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
 
-            <button
-              type="button"
-              onClick={() => document.getElementById('fileInput').click()}
-              className="bg-[#2e2e2e] text-white px-4 py-1.5 rounded-lg hover:bg-[#3a3a3a] w-full sm:w-auto text-sm"
+          <div className="flex flex-col items-center justify-center gap-6 w-full max-w-[800px]">
+            <h1 className="text-green-400 text-5xl font-extrabold text-center drop-shadow-[0_0_4px_rgba(0,255,0,0.4)] mb-3">
+              AI <span className="text-green-400">Blog Generator</span>
+            </h1>
+
+
+
+            <form
+              className="bg-[#1f1f1f] bg-opacity-90 rounded-xl px-4 py-4 flex flex-col items-center w-full gap-3 shadow-xl"
+              onSubmit={(e) => {
+                e.preventDefault();
+                genearteBlogContent();
+              }}
+              encType="multipart/form-data"
             >
-              📎 Attach
-            </button>
-
-            <button
-              type="submit"
-              className="bg-white text-black px-4 py-1.5 rounded-full text-base font-semibold hover:bg-gray-200 w-full sm:w-auto"
-            >
-              Submit
-            </button>
-          </form>
-
-
-          {selectedFile && (
-            <div className="absolute bottom-10 text-white text-sm px-4 text-center">
-              <p>
-                Attached: <strong>{selectedFile.name}</strong>
-                {selectedFile.type.startsWith("image/") ? " 🖼️" : " 📄"}
-              </p>
-
-              {selectedFile.type.startsWith("image/") && imageURL && (
-                <img
-                  src={imageURL}
-                  alt="Preview"
-                  className="mt-2 max-w-[200px] rounded-lg mx-auto"
-                />
-              )}
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="container py-[30px] px-[100px]">
-
-
-
-
-
-          {loading ? (
-            <div className='fixed top-0 left-0 flex items-center justify-center h-screen w-screen bg-black bg-opacity-70 z-50'>
-              <DNA
-                visible={true}
-                height="120"
-                width="120"
-                ariaLabel="dna-loading"
-                wrapperClass="dna-wrapper"
+              <textarea
+                placeholder="Ask anything"
+                className="w-full text-white bg-transparent placeholder-gray-400 focus:outline-none resize-none min-h-[60px] max-h-[200px] overflow-hidden break-words whitespace-pre-wrap"
+                value={text}
+                onChange={(e) => {
+                  setText(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = e.target.scrollHeight + "px";
+                }}
+                required
               />
-            </div>
 
-
-
-          ) : (
-            <div>
-              <p className='font-bold text-[20px] mb-7 flex items-center gap-[10px]'>
-                <i onClick={() => setScreen(1)} className='cursor-pointer flex flex-col items-center justify-center w-[40px] h-[40px] rounded-[50%] transition-all duration-300 hover:bg-zinc-800'>
-                  <IoMdArrowRoundBack />
-                </i> Output:
-              </p>
-
-              <div id="markdown-content" ref={blogRef} className="markdown-body bg-white text-black p-6 rounded-xl mb-6">
-                {editMode ? (
-                  <textarea
-                    value={editedContent}
-                    onChange={(e) => setEditedContent(e.target.value)}
-                    className="w-full min-h-[400px] p-4 bg-black border border-gray-600 text-white rounded-md"
-                  />
-                ) : (
-                  <Markdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      img: ({ node, ...props }) => {
-                        if (!props.src || props.src.trim() === "") return null;
-                        return (
-                          <img
-                            {...props}
-                            alt={props.alt || "Image"}
-                            className="rounded-xl my-4 mx-auto"
-                            style={{ display: "block", width: "500px", height: "auto" }}
-                          />
-                        );
-                      },
-                    }}
-                  >
-                    {editedContent || data}
-                  </Markdown>
-                )}
-              </div>
-
-              <div className="flex gap-4 flex-wrap items-center mt-6">
-                <button
-                  onClick={genearteBlogContent}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-semibold px-5 py-2 rounded-xl shadow-md hover:from-yellow-500 hover:to-yellow-700 transition duration-300"
-                >
-                  🔄 Re-Generate
-                </button>
-
-                <select
-                  className="border px-4 py-2 rounded-xl text-black bg-white shadow-sm focus:ring-2 focus:ring-yellow-400"
-                  onChange={(e) => setDownloadFormat(e.target.value)}
-                >
-                  <option value="pdf">PDF</option>
-                  <option value="word">Word</option>
-                </select>
-                <button
-                  onClick={() =>
-                    downloadBlog({
-                      content: editedContent || data,
-                      title: text,
-                      format: downloadFormat,
-                      image: imageURL,
-                    })
-                  }
-                  disabled={!data}
-                  className={`px-5 py-2 rounded-xl font-semibold transition duration-300 shadow-md ${data
-                    ? "bg-gradient-to-r from-green-500 to-green-700 text-white hover:from-green-600 hover:to-green-800"
-                    : "bg-gray-400 text-white cursor-not-allowed"
-                    }`}
-                >
-                  ⬇️ Download
-                </button>
-
-                <button
-                  onClick=
-                  {publishToDevto}
-                  className="bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-blue-600 hover:to-blue-800 transition duration-300"
-                >
-                  🚀 Publish to Dev.to
-                </button>
-                <button
-                  onClick={() => {
-                    if (editMode) setData(editedContent);
-                    else setEditedContent(data);
-                    setEditMode(!editMode);
-                  }}
-                  className={`px-5 py-2 rounded-xl font-semibold shadow-md transition duration-300 ${editMode
-                    ? "bg-gradient-to-r from-green-700 to-green-900 text-white hover:from-green-800 hover:to-green-950"
-                    : "bg-gradient-to-r from-orange-500 to-orange-700 text-white hover:from-orange-600 hover:to-orange-800"
-                    }`}
-                >
-                  ✏️ {editMode ? "Save" : "Edit Blog"}
-                </button>
-
-                <div className="flex items-center gap-2">
+              {links.map((link, index) => (
+                <div key={index} className="w-full flex items-center gap-2">
                   <input
-                    type="datetime-local"
-                    ref={dateInputRef}
-                    className="hidden"
-                    value={scheduledAt}
-                    onChange={(e) => setScheduledAt(e.target.value)}
+                    type="text"
+                    placeholder={`Reference Link #${index + 1}`}
+                    className="flex-1 text-white bg-[#2e2e2e] px-3 py-2 rounded-md placeholder-gray-400 focus:outline-none"
+                    value={link}
+                    onChange={(e) => {
+                      const updatedLinks = [...links];
+                      updatedLinks[index] = e.target.value;
+                      setLinks(updatedLinks);
+                    }}
                   />
-
-
-                  <FaRegCalendarAlt
-                    className="text-white text-2xl cursor-pointer hover:text-purple-400 transition"
-                    onClick={() => dateInputRef.current.showPicker()}
-                  />
-
                   <button
-                    onClick={scheduleBlog}
-                    className="bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-purple-600 hover:to-purple-800 transition duration-300"
+                    type="button"
+                    onClick={() => {
+                      const updatedLinks = [...links];
+                      updatedLinks.splice(index, 1);
+                      setLinks(updatedLinks);
+                    }}
+                    className="text-red-500 text-lg hover:text-red-700 transition"
+                    title="Remove Link"
                   >
-                    🗓️ Schedule Blog
+                    ❌
                   </button>
                 </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => setLinks([...links, ""])}
+                className="self-start bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition"
+              >
+                ➕ Add Link
+              </button>
+
+              <div className="flex flex-col sm:flex-row gap-3 w-full justify-between mt-3">
+                <input
+                  type="file"
+                  id="fileInput"
+                  className="hidden"
+                  onChange={handleFileUpload}
+                />
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('fileInput').click()}
+                  className="bg-[#2e2e2e] text-white px-4 py-1.5 rounded-lg hover:bg-[#3a3a3a] w-full sm:w-auto text-sm"
+                >
+                  📎 Attach
+                </button>
+
+                <button
+                  type="submit"
+                  className="bg-white text-black px-4 py-1.5 rounded-full text-base font-semibold hover:bg-gray-200 w-full sm:w-auto"
+                >
+                  Submit
+                </button>
               </div>
+              
+            </form>
+
+            {selectedFile && (
+              <div className="text-white text-sm px-4 text-center">
+                <p>
+                  Attached: <strong>{selectedFile.name}</strong>
+                  {selectedFile.type.startsWith("image/") ? " 🖼️" : " 📄"}
+                </p>
+
+                {selectedFile.type.startsWith("image/") && imageURL && (
+                  <div className="flex justify-center">
+                    <img
+                      src={imageURL}
+                      alt="Preview"
+                      className="mt-2 w-full max-w-[300px] h-auto rounded-lg object-contain"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+        </div>
+      ) : (
+        <div>
+          <p className='font-bold text-[20px] mb-7 flex items-center gap-[10px]'>
+            <i onClick={() => setScreen(1)} className='cursor-pointer flex flex-col items-center justify-center w-[40px] h-[40px] rounded-[50%] transition-all duration-300 hover:bg-zinc-800'>
+              <IoMdArrowRoundBack />
+            </i> Output:
+          </p>
+
+          <div id="markdown-content" ref={blogRef} className="markdown-body bg-white text-black p-6 rounded-xl mb-6">
+            {editMode ? (
+              <textarea
+                value={editedContent}
+                onChange={(e) => setEditedContent(e.target.value)}
+                className="w-full min-h-[400px] p-4 bg-black border border-gray-600 text-white rounded-md"
+              />
+            ) : (
+              <Markdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  img: ({ node, ...props }) => {
+                    if (!props.src || props.src.trim() === "") return null;
+                    return (
+                      <img
+                        {...props}
+                        alt={props.alt || "Image"}
+                        className="rounded-xl my-4 mx-auto"
+                        style={{ display: "block", width: "500px", height: "auto" }}
+                      />
+                    );
+                  },
+                }}
+              >
+                {editedContent || data}
+              </Markdown>
+            )}
+          </div>
+
+          <div className="flex gap-4 flex-wrap items-center mt-6">
+            <button
+              onClick={genearteBlogContent}
+              className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-semibold px-5 py-2 rounded-xl shadow-md hover:from-yellow-500 hover:to-yellow-700 transition duration-300"
+            >
+              🔄 Re-Generate
+            </button>
+
+            <select
+              className="border px-4 py-2 rounded-xl text-black bg-white shadow-sm focus:ring-2 focus:ring-yellow-400"
+              onChange={(e) => setDownloadFormat(e.target.value)}
+            >
+              <option value="pdf">PDF</option>
+              <option value="word">Word</option>
+            </select>
+
+            <button
+              onClick={() =>
+                downloadBlog({
+                  content: editedContent || data,
+                  title: text,
+                  format: downloadFormat,
+                  image: imageURL,
+                })
+              }
+              disabled={!data}
+              className={`px-5 py-2 rounded-xl font-semibold transition duration-300 shadow-md ${data
+                ? "bg-gradient-to-r from-green-500 to-green-700 text-white hover:from-green-600 hover:to-green-800"
+                : "bg-gray-400 text-white cursor-not-allowed"
+                }`}
+            >
+              ⬇️ Download
+            </button>
+
+            <button
+              onClick={publishToDevto}
+              className="bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-blue-600 hover:to-blue-800 transition duration-300"
+            >
+              🚀 Publish to Dev.to
+            </button>
+
+            <button
+              onClick={() => {
+                if (editMode) setData(editedContent);
+                else setEditedContent(data);
+                setEditMode(!editMode);
+              }}
+              className={`px-5 py-2 rounded-xl font-semibold shadow-md transition duration-300 ${editMode
+                ? "bg-gradient-to-r from-green-700 to-green-900 text-white hover:from-green-800 hover:to-green-950"
+                : "bg-gradient-to-r from-orange-500 to-orange-700 text-white hover:from-orange-600 hover:to-orange-800"
+                }`}
+            >
+              ✏️ {editMode ? "Save" : "Edit Blog"}
+            </button>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="datetime-local"
+                ref={dateInputRef}
+                className="hidden"
+                value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+              />
+
+              <FaRegCalendarAlt
+                className="text-white text-2xl cursor-pointer hover:text-purple-400 transition"
+                onClick={() => dateInputRef.current.showPicker()}
+              />
+
+              <button
+                onClick={scheduleBlog}
+                className="bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-purple-600 hover:to-purple-800 transition duration-300"
+              >
+                🗓️ Schedule Blog
+              </button>
             </div>
-          )}
+          </div>
         </div>
       )}
     </>
