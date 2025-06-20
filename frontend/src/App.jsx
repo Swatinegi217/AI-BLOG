@@ -8,7 +8,7 @@ import Markdown from 'react-markdown';
 import { downloadBlog } from './component/downloadBlog';
 import { FaRegCalendarAlt } from "react-icons/fa";
 import remarkGfm from "remark-gfm";
-import b9 from '../dist/b9.jpg';
+
 
 
 
