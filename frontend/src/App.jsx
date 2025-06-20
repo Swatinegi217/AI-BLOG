@@ -91,39 +91,39 @@ const App = () => {
   };
 
 
-const publishToDevto = async () => {
-  setIsPublishing(true); 
+  const publishToDevto = async () => {
+    setIsPublishing(true);
 
-  try {
-    const title = extractTitle(data);
-    const cleanedContent = (editedContent || data)
-      .split('\n')
-      .filter(line =>
-        !line.toLowerCase().startsWith('**meta description') &&
-        !line.toLowerCase().startsWith('**keywords') &&
-        !line.toLowerCase().startsWith('**slug')
-      )
-      .join('\n');
+    try {
+      const title = extractTitle(data);
+      const cleanedContent = (editedContent || data)
+        .split('\n')
+        .filter(line =>
+          !line.toLowerCase().startsWith('**meta description') &&
+          !line.toLowerCase().startsWith('**keywords') &&
+          !line.toLowerCase().startsWith('**slug')
+        )
+        .join('\n');
 
-    const res = await fetch("http://localhost:5000/api/devto/publish", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        markdown: cleanedContent,
-        tags: ["ai", "blog", "seo"],
-        image: imageURL
-      })
-    });
- 
-    const result = await res.json();
-    alert("Published successfully: " + result.url);
-  } catch (err) {
-    alert("Failed to publish: " + err.message);
-  }
+      const res = await fetch("http://localhost:5000/api/devto/publish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          markdown: cleanedContent,
+          tags: ["ai", "blog", "seo"],
+          image: imageURL
+        })
+      });
 
-  setIsPublishing(false); // Done
-};
+      const result = await res.json();
+      alert("Published successfully: " + result.url);
+    } catch (err) {
+      alert("Failed to publish: " + err.message);
+    }
+
+    setIsPublishing(false); // Done
+  };
 
   const scheduleBlog = async () => {
     if (!scheduledAt) {
@@ -196,14 +196,16 @@ const publishToDevto = async () => {
 
 
 
-  {isPublishing && (
-  <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-    <div className="bg-white px-8 py-6 rounded-xl shadow-xl text-center">
-      <p className="text-xl font-semibold mb-2">🚀 Publishing your blog...</p>
-      <p className="text-gray-600 animate-pulse">Please wait a moment</p>
-    </div>
-  </div>
-)}
+  {
+    isPublishing && (
+      <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div className="bg-white px-8 py-6 rounded-xl shadow-xl text-center">
+          <p className="text-xl font-semibold mb-2">🚀 Publishing your blog...</p>
+          <p className="text-gray-600 animate-pulse">Please wait a moment</p>
+        </div>
+      </div>
+    )
+  }
 
 
   return (
@@ -226,7 +228,7 @@ const publishToDevto = async () => {
             <input
               type="text"
               placeholder="Ask anything"
-              className="bg-transparent flex-1 text-white placeholder-gray-400 focus:outline-none"
+              className="bg-transparent flex-1 text-white text-xl placeholder-gray-400 focus:outline-none"
               value={text}
               onChange={(e) => setText(e.target.value)}
               required
@@ -243,7 +245,7 @@ const publishToDevto = async () => {
               <button
                 type="button"
                 onClick={() => document.getElementById('fileInput').click()}
-                className="bg-[#2e2e2e] px-4 py-1.5 rounded-xl text-sm hover:bg-[#3a3a3a]"
+                className="bg-[#2e2e2e] px-4 py-1.5 rounded-xl text-lg hover:bg-[#3a3a3a]"
               >
                 📎 Attach
               </button>
@@ -251,11 +253,12 @@ const publishToDevto = async () => {
 
             <button
               type="submit"
-              className="ml-4 bg-white text-black px-4 py-1.5 rounded-full text-sm font-medium hover:bg-gray-200"
+              className="ml-4 bg-white text-black px-4 py-1.5 rounded-full text-lg font-medium hover:bg-gray-200"
             >
               Submit
             </button>
           </form>
+
 
           {selectedFile && (
             <div className="absolute bottom-10 text-white text-sm">
