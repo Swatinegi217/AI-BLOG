@@ -1,100 +1,111 @@
-import html2pdf from 'html2pdf.js';
-import { Document, Packer, Paragraph, Media } from 'docx';
-import { saveAs } from 'file-saver';
+import html2pdf from "html2pdf.js";
+import { saveAs } from "file-saver";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  ImageRun,
+} from "docx";
+
+function markdownToText(markdown) {
+  return markdown
+    .replace(/#+\s?/g, '') // Remove headings
+    .replace(/\*\*(.*?)\*\*/g, '$1') // Bold
+    .replace(/\*(.*?)\*/g, '$1') // Italic
+    .replace(/!\[(.*?)\]\((.*?)\)/g, '') // Remove images
+    .replace(/\[(.*?)\]\((.*?)\)/g, '$1') // Links
+    .replace(/`{1,3}(.*?)`{1,3}/g, '$1') // Inline code
+    .replace(/>\s?(.*)/g, '$1') // Blockquotes
+    .replace(/[-*+]\s/g, '') // Bullet lists
+    .replace(/\n{2,}/g, '\n\n'); // Normalize spacing
+}
 
 export const downloadBlog = async ({ content, title, format, image }) => {
-  if (!content || content.trim() === '') {
-    alert('No blog content to download!');
+  if (!content || content.trim() === "") {
+    alert("No blog content to download!");
     return;
   }
 
-  if (format === 'pdf') {
+  if (format === "pdf") {
     const element = document.getElementById("markdown-content");
     if (!element) {
       alert("Cannot find blog content to download as PDF.");
       return;
     }
 
-  if (format === 'pdf') {
-  const element = document.getElementById("markdown-content");
-  if (!element) {
-    alert("Cannot find blog content to download as PDF.");
-    return;
-  }
-
-  html2pdf()
-    .from(element)
-    .set({
-      margin: 0.5,
-      filename: `${title.slice(0, 10) || 'blog'}.pdf`,
-      html2canvas: {
-        scale: 2,
-        useCORS: true,      // ✅ Make sure images from external URLs are allowed
-        allowTaint: false,
-      },
-      jsPDF: {
-        unit: 'in',
-        format: 'letter',
-        orientation: 'portrait',
-      },
-    })
-    .save();
-}
-
+    html2pdf()
+      .from(element)
+      .set({
+        margin: 0.5,
+        filename: `${title.slice(0, 10) || "blog"}.pdf`,
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: false,
+        },
+        jsPDF: {
+          unit: "in",
+          format: "letter",
+          orientation: "portrait",
+        },
+      })
+      .save();
   } else {
-    // Clean content
-    const cleaned = content
-      .split('\n')
-      .filter(line =>
-        !line.toLowerCase().startsWith('meta description') &&
-        !line.toLowerCase().startsWith('keywords') &&
-        !line.toLowerCase().startsWith('slug')
-      )
-      .join('\n');
+    try {
+      // Extract image from markdown
+      const imageMatch = content.match(/!\[.*?\]\((.*?)\)/);
+      const imageUrl = image || (imageMatch ? imageMatch[1] : null);
 
-    const lines = cleaned.split('\n').filter(line => line.trim() !== '');
 
-    const doc = new Document();
-    const children = [];
+      // Convert markdown to plain text
+      const plainText = markdownToText(content);
+      const lines = plainText.split("\n").filter((line) => line.trim() !== "");
+      const children = [];
 
-    // Add text lines as paragraphs
-    lines.forEach((line, index) => {
-      const isHeading =
-        line === "Introduction" ||
-        line === "Conclusion" ||
-        line.includes(':') ||
-        line.length < 60;
-
-      const paragraph = new Paragraph({
-        children: [{ text: line, bold: isHeading }]
+      // Add each line as paragraph
+      lines.forEach((line) => {
+        const isHeading = line.length < 60;
+        children.push(
+          new Paragraph({
+            children: [new TextRun({ text: line, bold: isHeading })],
+          })
+        );
       });
 
-      children.push(paragraph);
-    });
+      // Add image if available
+      if (imageUrl) {
+        try {
+          const response = await fetch(imageUrl);
+          const blob = await response.blob();
+          const arrayBuffer = await blob.arrayBuffer();
 
-// Insert image after "Introduction"
-if (image) {
-  try {
-    const response = await fetch(image);
-    const blob = await response.blob();
-    const imageBuffer = await blob.arrayBuffer();
+          const imageRun = new ImageRun({
+            data: arrayBuffer,
+            transformation: { width: 500, height: 300 },
+          });
 
-    const imageDoc = Media.addImage(doc, imageBuffer, 500, 300);
-    const imageParagraph = new Paragraph(imageDoc);
+          // Insert image after "Introduction" or at index 2
+          const introIndex = lines.findIndex(line =>
+            line.trim().toLowerCase().includes("introduction")
+          );
+          const insertAt = introIndex !== -1 ? introIndex + 1 : 2;
 
-    // Simple fallback: insert after first or second paragraph
-    const insertIndex = lines.findIndex(l => l.trim().toLowerCase() === 'introduction');
-    const safeIndex = insertIndex >= 0 ? insertIndex + 1 : 2;
+          children.splice(insertAt, 0, new Paragraph(imageRun));
+        } catch (e) {
+          console.warn("⚠️ Could not add image:", e);
+        }
+      }
 
-    children.splice(safeIndex, 0, imageParagraph);
-  } catch (err) {
-    console.warn("❌ Failed to load image for DOCX download:", err.message);
-  }
-}
+      const doc = new Document({
+        sections: [{ children }],
+      });
 
-    doc.addSection({ children });
-
-    const blob = await Packer.toBlob(doc);
-    saveAs(blob, `${title.slice(0, 10) || 'blog'}.docx`);
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, `${title.slice(0, 10) || "blog"}.docx`);
+    } catch (err) {
+      console.error("❌ Failed to generate Word document:", err);
+      alert("Failed to generate Word document.");
+    }
   }
 };

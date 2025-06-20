@@ -9,4 +9,7 @@ export default defineConfig({
       '/api': 'http://localhost:5000', // proxy API requests to backend
     },
   },
+   define: {
+    global: 'window', // required for docx internal use
+  },
 })
