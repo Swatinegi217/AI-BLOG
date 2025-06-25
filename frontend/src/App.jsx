@@ -102,9 +102,10 @@ const App = () => {
 
 
 
-  const scheduleBlog = async () => {
-  if (!scheduledAt) {
-    alert("Please select a date and time to schedule.");
+const scheduleBlog = async () => {
+  console.log("ScheduledAt:", scheduledAt);
+  if (!scheduledAt || isNaN(new Date(scheduledAt).getTime())) {
+    alert("Please select a valid date and time to schedule.");
     return;
   }
 
@@ -113,8 +114,6 @@ const App = () => {
 
   try {
     const title = extractTitle(data);
-
-    // ✅ Remove meta description, keywords, slug
     const cleanedContent = (editedContent || data)
       .split('\n')
       .filter(line =>
@@ -126,9 +125,7 @@ const App = () => {
 
     const response = await fetch("http://localhost:5000/api/devto/schedule", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         title,
         markdown: cleanedContent,
@@ -141,7 +138,6 @@ const App = () => {
     const resData = await response.json();
     console.log("✅ Blog scheduled:", resData);
     setScheduleSuccess(true);
-    // Optional: setTimeout(() => setScheduleSuccess(false), 3000);
   } catch (err) {
     console.error("❌ Error scheduling blog:", err);
     alert("Failed to schedule blog");
