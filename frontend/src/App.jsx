@@ -5,9 +5,9 @@ import { GoogleGenAI } from "@google/genai";
 import { DNA } from 'react-loader-spinner';
 import Markdown from 'react-markdown';
 import { downloadBlog } from './component/downloadBlog';
-import { publishToDevto } from "./component/PublishBlog";
+import { publishToWordpress } from "./component/PublishBlog";
 import { FaRegCalendarAlt } from "react-icons/fa";
-import remarkGfm from "remark-gfm"; 
+import remarkGfm from "remark-gfm";
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 
 
@@ -102,49 +102,49 @@ const App = () => {
 
 
 
-const scheduleBlog = async () => {
-  console.log("ScheduledAt:", scheduledAt);
-  if (!scheduledAt || isNaN(new Date(scheduledAt).getTime())) {
-    alert("Please select a valid date and time to schedule.");
-    return;
-  }
+  const scheduleBlog = async () => {
+    console.log("ScheduledAt:", scheduledAt);
+    if (!scheduledAt || isNaN(new Date(scheduledAt).getTime())) {
+      alert("Please select a valid date and time to schedule.");
+      return;
+    }
 
-  setIsPublishing(true);
-  setScheduleSuccess(false);
+    setIsPublishing(true);
+    setScheduleSuccess(false);
 
-  try {
-    const title = extractTitle(data);
-    const cleanedContent = (editedContent || data)
-      .split('\n')
-      .filter(line =>
-        !line.toLowerCase().startsWith('**meta description') &&
-        !line.toLowerCase().startsWith('**keywords') &&
-        !line.toLowerCase().startsWith('**slug')
-      )
-      .join('\n');
+    try {
+      const title = extractTitle(data);
+      const cleanedContent = (editedContent || data)
+        .split('\n')
+        .filter(line =>
+          !line.toLowerCase().startsWith('**meta description') &&
+          !line.toLowerCase().startsWith('**keywords') &&
+          !line.toLowerCase().startsWith('**slug')
+        )
+        .join('\n');
 
-    const response = await fetch("http://localhost:5000/api/devto/schedule", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title,
-        markdown: cleanedContent,
-        tags: ["ai", "blog", "seo"],
-        scheduledAt,
-        image: imageURL
-      })
-    });
+      const response = await fetch("http://localhost:5000/api/devto/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title,
+          markdown: cleanedContent,
+          tags: ["ai", "blog", "seo"],
+          scheduledAt,
+          image: imageURL
+        })
+      });
 
-    const resData = await response.json();
-    console.log("✅ Blog scheduled:", resData);
-    setScheduleSuccess(true);
-  } catch (err) {
-    console.error("❌ Error scheduling blog:", err);
-    alert("Failed to schedule blog");
-  } finally {
-    setIsPublishing(false);
-  }
-};
+      const resData = await response.json();
+      console.log("✅ Blog scheduled:", resData);
+      setScheduleSuccess(true);
+    } catch (err) {
+      console.error("❌ Error scheduling blog:", err);
+      alert("Failed to schedule blog");
+    } finally {
+      setIsPublishing(false);
+    }
+  };
 
 
   const handleFileUpload = async (e) => {
@@ -360,7 +360,7 @@ const scheduleBlog = async () => {
 
             <button
               onClick={() =>
-                publishToDevto({
+                publishToWordpress({
                   data,
                   editedContent,
                   imageURL,
@@ -368,7 +368,10 @@ const scheduleBlog = async () => {
                 })
               }
               className="bg-gradient-to-r from-blue-500 to-blue-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-blue-600 hover:to-blue-800 transition duration-300"
-            >🚀 Publish to Dev.to</button>
+            >
+              🚀 Publish to WordPress
+            </button>
+
 
             {isPublishing && (
               <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center">
@@ -408,7 +411,7 @@ const scheduleBlog = async () => {
                 className="bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-purple-600 hover:to-purple-800 transition duration-300"
               >🗓️ Schedule Blog</button>
 
-              
+
             </div>
           </div>
         </div>

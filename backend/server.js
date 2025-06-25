@@ -5,78 +5,78 @@ const dotenv = require("dotenv");
 const cron = require("node-cron");
 
 const Blog = require("./models/Blog");
-const { publishToDevto } = require("./utils/devtoApi");
+const { publishToWordPress } = require("./utils/wordpressApi");
 
 dotenv.config();
-
-
-
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use("/api/devto", require("./routes/devto"));
 
+app.use("/api/wordpress", require("./routes/wordpress"));
 
-// Routes
-const devtoRoutes = require("./routes/devto");
-app.use("/api/devto", devtoRoutes);
-
-// MongoDB connection
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB connected");
   } catch (err) {
-    console.error("❌ MongoDB connection error:", err.message);
+    console.error("❌ MongoDB error:", err.message);
     process.exit(1);
   }
 };
-
 connectDB();
 
-app.get("/", (req, res) => {
-  res.send("API is running...");
+app.get("/", (req, res) => res.send("API is running..."));
+
+
+const axios = require("axios");
+
+app.get("/api/test-wp", async (req, res) => {
+  const auth = `Basic ${Buffer.from(`${process.env.WP_USER}:${process.env.WP_APP_PASS}`).toString("base64")}`;
+  try {
+    const response = await axios.get(`${process.env.WP_SITE}/wp-json/wp/v2/users/me`, {
+      headers: { Authorization: auth }
+    });
+    res.json(response.data);
+  } catch (err) {
+    console.error("🔐 WordPress Test Error:", err.response?.data || err.message);
+    res.status(500).json({ error: err.response?.data || err.message });
+  }
 });
 
-// ✅ CRON JOB to auto-publish
+
+// 🔁 CRON Job for scheduled blog publishing
 cron.schedule("* * * * *", async () => {
   const now = new Date();
   const blogs = await Blog.find({ scheduledAt: { $lte: now }, published: false });
 
   for (const blog of blogs) {
     try {
-      const url = await publishToDevto({
+      const wordpressUrl = await publishToWordPress({
         title: blog.title,
-        markdown: blog.markdown,
-        tags: blog.tags
+        markdown: blog.markdown
       });
 
       blog.published = true;
-      blog.publishedUrl = url;
+      blog.publishedUrl = wordpressUrl;
+      blog.status = "published";
       await blog.save();
 
-      console.log(`✅ Blog published: ${blog.title}`);
+      console.log(`✅ Published: ${blog.title}`);
     } catch (err) {
       console.error(`❌ Failed to publish ${blog.title}:`, err.message);
     }
   }
 });
 
-
-// ✅ NEW: Route for WPGetAPI to access published blogs
+// Get all published blogs
 app.get("/api/blogs", async (req, res) => {
   try {
     const blogs = await Blog.find({ published: true }).sort({ createdAt: -1 });
     res.json(blogs);
   } catch (err) {
-    console.error("❌ Failed to fetch blogs:", err.message);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Failed to fetch blogs" });
   }
 });
 
-
-app.listen(5000, () => {
-  console.log("🚀 Server running on http://localhost:5000");
-});
-
+app.listen(5000, () => console.log("🚀 Server on http://localhost:5000"));

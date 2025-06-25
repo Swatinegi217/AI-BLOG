@@ -5,18 +5,14 @@ const blogSchema = new mongoose.Schema({
   markdown: { type: String, required: true },
   tags: [String],
   image: String,
-
   scheduledAt: Date,
   published: { type: Boolean, default: false },
-  publishedUrl: String,       // Used by cron job
-  devtoUrl: String,           // Used by /publish route
-
+  publishedUrl: String,
   status: {
     type: String,
     enum: ["generated", "regenerated", "scheduled", "published"],
     default: "generated"
   },
-
   createdAt: { type: Date, default: Date.now }
 });
 
