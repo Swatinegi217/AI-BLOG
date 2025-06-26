@@ -102,49 +102,58 @@ const App = () => {
 
 
 
-  const scheduleBlog = async () => {
-    console.log("ScheduledAt:", scheduledAt);
-    if (!scheduledAt || isNaN(new Date(scheduledAt).getTime())) {
-      alert("Please select a valid date and time to schedule.");
-      return;
-    }
+ const scheduleBlog = async () => {
+  console.log("Original ScheduledAt:", scheduledAt);
 
-    setIsPublishing(true);
-    setScheduleSuccess(false);
+  if (!scheduledAt || isNaN(new Date(scheduledAt).getTime())) {
+    alert("Please select a valid date and time to schedule.");
+    return;
+  }
 
-    try {
-      const title = extractTitle(data);
-      const cleanedContent = (editedContent || data)
-        .split('\n')
-        .filter(line =>
-          !line.toLowerCase().startsWith('**meta description') &&
-          !line.toLowerCase().startsWith('**keywords') &&
-          !line.toLowerCase().startsWith('**slug')
-        )
-        .join('\n');
+  const istTime = new Date(scheduledAt); // 👈✅ Already local (IST)
 
-      const response = await fetch("http://localhost:5000/api/devto/schedule", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          markdown: cleanedContent,
-          tags: ["ai", "blog", "seo"],
-          scheduledAt,
-          image: imageURL
-        })
-      });
+  console.log("📅 Final ScheduledAt (local/IST):", istTime.toISOString());
 
-      const resData = await response.json();
-      console.log("✅ Blog scheduled:", resData);
-      setScheduleSuccess(true);
-    } catch (err) {
-      console.error("❌ Error scheduling blog:", err);
-      alert("Failed to schedule blog");
-    } finally {
-      setIsPublishing(false);
-    }
-  };
+  setIsPublishing(true);
+  setScheduleSuccess(false);
+
+  try {
+    const title = extractTitle(data);
+    const cleanedContent = (editedContent || data)
+      .split('\n')
+      .filter(line =>
+        !line.toLowerCase().startsWith('**meta description') &&
+        !line.toLowerCase().startsWith('**keywords') &&
+        !line.toLowerCase().startsWith('**slug')
+      )
+      .join('\n');
+
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/wordpress/schedule`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title,
+        markdown: cleanedContent,
+        tags: ["ai", "blog", "seo"],
+        scheduledAt: istTime.toISOString(),  // 👈 This is correct
+        image: imageURL
+      })
+    });
+
+    const resData = await response.json();
+
+    if (!response.ok) throw new Error(resData?.error || "Unknown error");
+
+    console.log("✅ Blog scheduled:", resData);
+    setScheduleSuccess(true);
+  } catch (err) {
+    console.error("❌ Error scheduling blog:", err);
+    alert("Failed to schedule blog");
+  } finally {
+    setIsPublishing(false);
+  }
+};
+
 
 
   const handleFileUpload = async (e) => {
@@ -395,24 +404,48 @@ const App = () => {
             >✏️ {editMode ? "Save" : "Edit Blog"}</button>
 
             <div className="flex items-center gap-2">
-              <input
-                type="datetime-local"
-                ref={dateInputRef}
-                className="hidden"
-                value={scheduledAt}
-                onChange={(e) => setScheduledAt(e.target.value)}
-              />
-              <FaRegCalendarAlt
-                className="text-white text-2xl cursor-pointer hover:text-purple-400 transition"
-                onClick={() => dateInputRef.current.showPicker()}
-              />
-              <button
-                onClick={scheduleBlog}
-                className="bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-purple-600 hover:to-purple-800 transition duration-300"
-              >🗓️ Schedule Blog</button>
+  {/* ✅ Hidden input for datetime-local */}
+  <input
+    type="datetime-local"
+    ref={dateInputRef}
+    className="hidden"
+    value={scheduledAt}
+    onChange={(e) => setScheduledAt(e.target.value)}
+  />
 
+  {/* ✅ Calendar Icon that opens the native picker */}
+  <FaRegCalendarAlt
+    className="text-white text-2xl cursor-pointer hover:text-purple-400 transition"
+    onClick={() => dateInputRef.current.showPicker()}
+    title="Pick Date & Time"
+  />
 
-            </div>
+  {/* ✅ Display selected time (optional) */}
+  {scheduledAt && (
+    <span className="text-white font-medium">
+      {new Date(scheduledAt).toLocaleString("en-IN", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })}
+    </span>
+  )}
+
+  {/* ✅ Schedule Button */}
+  <button
+    onClick={scheduleBlog}
+    className="bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md hover:from-purple-600 hover:to-purple-800 transition duration-300"
+  >
+    🗓️ Schedule Blog
+  </button>
+
+  {/* ✅ Success Message */}
+  {scheduleSuccess && (
+    <p className="text-green-500 font-semibold mt-2">
+      ✅ Blog scheduled successfully!
+    </p>
+  )}
+</div>
+
           </div>
         </div>
       )}

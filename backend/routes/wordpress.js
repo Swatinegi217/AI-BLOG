@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { publishToWordPress } = require("../utils/wordpressApi");
 const Blog = require("../models/Blog");
+require("dotenv").config();
 
 // ✅ Publish instantly to WordPress
 router.post("/publish", async (req, res) => {

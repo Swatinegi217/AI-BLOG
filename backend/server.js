@@ -48,26 +48,42 @@ app.get("/api/test-wp", async (req, res) => {
 // 🔁 CRON Job for scheduled blog publishing
 cron.schedule("* * * * *", async () => {
   const now = new Date();
-  const blogs = await Blog.find({ scheduledAt: { $lte: now }, published: false });
+  console.log("🕐 Running CRON at", now.toISOString());
 
-  for (const blog of blogs) {
-    try {
-      const wordpressUrl = await publishToWordPress({
-        title: blog.title,
-        markdown: blog.markdown
-      });
+  try {
+    const blogs = await Blog.find({ scheduledAt: { $lte: now }, published: false });
 
-      blog.published = true;
-      blog.publishedUrl = wordpressUrl;
-      blog.status = "published";
-      await blog.save();
+    console.log(`🧠 Found ${blogs.length} blogs to publish...`);
 
-      console.log(`✅ Published: ${blog.title}`);
-    } catch (err) {
-      console.error(`❌ Failed to publish ${blog.title}:`, err.message);
+    for (const blog of blogs) {
+      try {
+        console.log(`📤 Publishing: ${blog.title}`);
+
+        const wordpressUrl = await publishToWordPress({
+          title: blog.title,
+          markdown: blog.markdown,
+        });
+
+        if (!wordpressUrl) {
+          console.error("❌ No URL returned from WordPress");
+          continue;
+        }
+
+        blog.published = true;
+        blog.publishedUrl = wordpressUrl;
+        blog.status = "published";
+        await blog.save();
+
+        console.log(`✅ Successfully published: ${blog.title} → ${wordpressUrl}`);
+      } catch (err) {
+        console.error(`❌ Failed to publish ${blog.title}:`, err.message);
+      }
     }
+  } catch (err) {
+    console.error("❌ Cron failed:", err.message);
   }
 });
+
 
 // Get all published blogs
 app.get("/api/blogs", async (req, res) => {
