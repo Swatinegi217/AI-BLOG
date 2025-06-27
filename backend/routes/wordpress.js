@@ -9,10 +9,10 @@ router.post("/publish", async (req, res) => {
   const { title, markdown, tags, image } = req.body;
 
   try {
-    // 🧠 Use utility function
-    const wordpressUrl = await publishToWordPress({ title, markdown });
+    // ✅ Pass image too!
+    const wordpressUrl = await publishToWordPress({ title, markdown, image });
 
-    // 📦 Save to MongoDB
+    // ✅ Save blog to MongoDB
     await Blog.create({
       title,
       markdown,
@@ -24,13 +24,17 @@ router.post("/publish", async (req, res) => {
     });
 
     res.status(200).json({ url: wordpressUrl });
-  }catch (error) {
-  console.error("❌ Error publishing to WordPress:", error.response?.data || error.message);
-  res.status(500).json({ error: "Failed to publish", details: error.response?.data || error.message });
-}
-
-
+  } catch (error) {
+    console.error("❌ Error publishing to WordPress:", error.response?.data || error.message);
+    res.status(500).json({
+      error: "Failed to publish",
+      details: error.response?.data || error.message,
+    });
+  }
 });
+
+
+
 
 // ✅ Schedule blog for future publishing
 router.post("/schedule", async (req, res) => {
