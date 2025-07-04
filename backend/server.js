@@ -3,18 +3,47 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const cron = require("node-cron");
+const axios = require("axios");
 
 const Blog = require("./models/Blog");
 const { publishToWordPress } = require("./utils/wordpressApi");
+const authRoutes = require("./routes/auth");
+const authMiddleware = require("./utils/authMiddleware");
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
+// ✅ Middleware setup
+app.use(cors()); // Allows requests from frontend (like React)
+app.use(express.json()); // Parses incoming JSON
+
+// ✅ API Routes
 app.use("/api/wordpress", require("./routes/wordpress"));
+app.use("/api/blogs", require("./routes/blogRoutes"));
+app.use("/api/auth", authRoutes);
+app.use("/api/blog", require("./routes/generate"));
+app.use('/api/payment', require('./routes/payment'));
 
+// ✅ Test API
+app.get("/", (req, res) => res.send("API is running..."));
+
+// ✅ WordPress API test route
+app.get("/api/test-wp", async (req, res) => {
+  const auth = `Basic ${Buffer.from(`${process.env.WP_USER}:${process.env.WP_APP_PASS}`).toString("base64")}`;
+
+  try {
+    const response = await axios.get(`${process.env.WP_SITE}/wp-json/wp/v2/users/me`, {
+      headers: { Authorization: auth },
+    });
+    res.json(response.data);
+  } catch (err) {
+    console.error("🔐 WordPress Test Error:", err.response?.data || err.message);
+    res.status(500).json({ error: err.response?.data || err.message });
+  }
+});
+
+// ✅ MongoDB connection
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
@@ -26,34 +55,13 @@ const connectDB = async () => {
 };
 connectDB();
 
-app.get("/", (req, res) => res.send("API is running..."));
-
-
-const axios = require("axios");
-
-app.get("/api/test-wp", async (req, res) => {
-  const auth = `Basic ${Buffer.from(`${process.env.WP_USER}:${process.env.WP_APP_PASS}`).toString("base64")}`;
-  try {
-    const response = await axios.get(`${process.env.WP_SITE}/wp-json/wp/v2/users/me`, {
-      headers: { Authorization: auth }
-    });
-    res.json(response.data);
-  } catch (err) {
-    console.error("🔐 WordPress Test Error:", err.response?.data || err.message);
-    res.status(500).json({ error: err.response?.data || err.message });
-  }
-});
-
-
-// 🔁 CRON Job for scheduled blog publishing
+// ✅ CRON Job: Publish scheduled blogs
 cron.schedule("* * * * *", async () => {
   const now = new Date();
   console.log("🕐 Running CRON at", now.toISOString());
 
   try {
     const blogs = await Blog.find({ scheduledAt: { $lte: now }, published: false });
-
-    console.log(`🧠 Found ${blogs.length} blogs to publish...`);
 
     for (const blog of blogs) {
       try {
@@ -74,19 +82,18 @@ cron.schedule("* * * * *", async () => {
         blog.status = "published";
         await blog.save();
 
-        console.log(`✅ Successfully published: ${blog.title} → ${wordpressUrl}`);
+        console.log(`✅ Published: ${blog.title} → ${wordpressUrl}`);
       } catch (err) {
         console.error(`❌ Failed to publish ${blog.title}:`, err.message);
       }
     }
   } catch (err) {
-    console.error("❌ Cron failed:", err.message);
+    console.error("❌ Cron job error:", err.message);
   }
 });
 
-
-// Get all published blogs
-app.get("/api/blogs", async (req, res) => {
+// ✅ Get all published blogs (public route)
+app.get("/api/blogs", authMiddleware, async (req, res) => {
   try {
     const blogs = await Blog.find({ published: true }).sort({ createdAt: -1 });
     res.json(blogs);
@@ -95,4 +102,10 @@ app.get("/api/blogs", async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log("🚀 Server on http://localhost:5000"));
+
+const paymentRoutes = require('./routes/payment');
+app.use('/api/payment', paymentRoutes);
+
+
+// ✅ Start server
+app.listen(5000, () => console.log("🚀 Server running at http://localhost:5000"));

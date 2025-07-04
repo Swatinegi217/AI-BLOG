@@ -32,7 +32,7 @@ export const publishToWordpress = async ({
         image: imageURL
       })
     });
-
+  
     const result = await res.json();
     alert("✅ Published to WordPress: " + result.url);
   } catch (err) {

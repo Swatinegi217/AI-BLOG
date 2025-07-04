@@ -6,33 +6,35 @@ require("dotenv").config();
 
 // ✅ Publish instantly to WordPress
 router.post("/publish", async (req, res) => {
-  const { title, markdown, tags, image } = req.body;
-
   try {
-    // ✅ Pass image too!
-    const wordpressUrl = await publishToWordPress({ title, markdown, image });
+    const { title, content, image } = req.body;
 
-    // ✅ Save blog to MongoDB
-    await Blog.create({
-      title,
-      markdown,
-      tags,
-      image,
-      published: true,
-      publishedUrl: wordpressUrl,
-      status: "published",
-    });
+    if (!title || !content) {
+      return res.status(400).json({ message: "Missing title or content" });
+    }
 
-    res.status(200).json({ url: wordpressUrl });
+    // Your WordPress publishing logic
+    const response = await axios.post(
+      "https://your-wordpress-site.com/wp-json/wp/v2/posts",
+      {
+        title,
+        content: `<img src="${image}" /><br/>${content}`,
+        status: "publish",
+      },
+      {
+        auth: {
+          username: process.env.WP_USER,
+          password: process.env.WP_APP_PASSWORD,
+        },
+      }
+    );
+
+    res.status(200).json({ success: true, link: response.data.link });
   } catch (error) {
-    console.error("❌ Error publishing to WordPress:", error.response?.data || error.message);
-    res.status(500).json({
-      error: "Failed to publish",
-      details: error.response?.data || error.message,
-    });
+    console.error("❌ WordPress publish error:", error.response?.data || error.message);
+    res.status(500).json({ message: "Failed to publish blog" });
   }
 });
-
 
 
 
