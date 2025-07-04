@@ -15,15 +15,14 @@ dotenv.config();
 const app = express();
 
 // ✅ Middleware setup
-app.use(cors()); // Allows requests from frontend (like React)
-app.use(express.json()); // Parses incoming JSON
+app.use(cors());
+app.use(express.json());
 
 // ✅ API Routes
-app.use("/api/wordpress", require("./routes/wordpress"));
-app.use("/api/blogs", require("./routes/blogRoutes"));
 app.use("/api/auth", authRoutes);
-app.use("/api/blog", require("./routes/generate"));
-app.use('/api/payment', require('./routes/payment'));
+app.use("/api/wordpress", require("./routes/wordpress"));
+app.use("/api/blog", require("./routes/blog")); // ✅ Combined all blog routes into one file
+app.use("/api/payment", require("./routes/payment"));
 
 // ✅ Test API
 app.get("/", (req, res) => res.send("API is running..."));
@@ -31,7 +30,6 @@ app.get("/", (req, res) => res.send("API is running..."));
 // ✅ WordPress API test route
 app.get("/api/test-wp", async (req, res) => {
   const auth = `Basic ${Buffer.from(`${process.env.WP_USER}:${process.env.WP_APP_PASS}`).toString("base64")}`;
-
   try {
     const response = await axios.get(`${process.env.WP_SITE}/wp-json/wp/v2/users/me`, {
       headers: { Authorization: auth },
@@ -92,7 +90,7 @@ cron.schedule("* * * * *", async () => {
   }
 });
 
-// ✅ Get all published blogs (public route)
+// ✅ Public blog route (protected if needed)
 app.get("/api/blogs", authMiddleware, async (req, res) => {
   try {
     const blogs = await Blog.find({ published: true }).sort({ createdAt: -1 });
@@ -102,10 +100,10 @@ app.get("/api/blogs", authMiddleware, async (req, res) => {
   }
 });
 
-
-const paymentRoutes = require('./routes/payment');
-app.use('/api/payment', paymentRoutes);
-
+// ✅ Catch-all 404
+app.use((req, res) => {
+  res.status(404).send("Route not found");
+});
 
 // ✅ Start server
 app.listen(5000, () => console.log("🚀 Server running at http://localhost:5000"));
