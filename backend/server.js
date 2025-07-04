@@ -21,7 +21,8 @@ app.use(express.json());
 // ✅ API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/wordpress", require("./routes/wordpress"));
-app.use("/api/blog", require("./routes/blog")); // ✅ Combined all blog routes into one file
+app.use('/api/blog', require('./routes/blogRoutes')); 
+ // ✅ Combined all blog routes into one file
 app.use("/api/payment", require("./routes/payment"));
 
 // ✅ Test API
