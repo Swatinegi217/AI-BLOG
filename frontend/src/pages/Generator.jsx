@@ -320,7 +320,7 @@ const App = () => {
                     encType="multipart/form-data"
                   >
                     <textarea
-                      placeholder="Ask anything"
+                      placeholder="Drop an innovative topic here"
                       className="w-full text-white bg-transparent placeholder-gray-400 focus:outline-none resize-none min-h-[60px] max-h-[200px] overflow-hidden break-words whitespace-pre-wrap"
                       value={text}
                       onChange={(e) => {
