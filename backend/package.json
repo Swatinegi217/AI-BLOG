@@ -24,7 +24,9 @@
     "marked": "^15.0.12",
     "mongoose": "^8.16.1",
     "node-cron": "^4.1.0",
+    "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.4",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "unfluff": "^3.2.0"
   }
 }
