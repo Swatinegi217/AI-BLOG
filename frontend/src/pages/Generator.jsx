@@ -29,7 +29,7 @@ const App = () => {
   const dateInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageURL, setImageURL] = useState("");
-   const [isPublishing, setIsPublishing] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
   const [links, setLinks] = useState([]);
   const [savedBlogs, setSavedBlogs] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -64,26 +64,30 @@ const App = () => {
         const imageMarkdown = `\n\n![Uploaded Image](${imageURL})\n\n`;
         const lines = blogContent.split('\n');
 
-        const introIndex = lines.findIndex(line =>
-          line.trim().toLowerCase().startsWith("## introduction")
-        );
+        // Check if image already exists in content
+        if (!blogContent.includes(imageURL)) {
+          const introIndex = lines.findIndex(line =>
+            line.trim().toLowerCase().startsWith("## introduction")
+          );
 
-        if (introIndex !== -1) {
-          let insertIndex = lines.length;
-          for (let i = introIndex + 1; i < lines.length; i++) {
-            if (lines[i].trim().startsWith("## ")) {
-              insertIndex = i;
-              break;
+          if (introIndex !== -1) {
+            let insertIndex = lines.length;
+            for (let i = introIndex + 1; i < lines.length; i++) {
+              if (lines[i].trim().startsWith("## ")) {
+                insertIndex = i;
+                break;
+              }
             }
+            lines.splice(insertIndex, 0, imageMarkdown);
+          } else {
+            const titleIndex = lines.findIndex(line => line.startsWith("# "));
+            lines.splice(titleIndex + 1, 0, imageMarkdown);
           }
-          lines.splice(insertIndex, 0, imageMarkdown);
-        } else {
-          const titleIndex = lines.findIndex(line => line.startsWith("# "));
-          lines.splice(titleIndex + 1, 0, imageMarkdown);
-        }
 
-        blogContent = lines.join('\n');
+          blogContent = lines.join('\n');
+        }
       }
+
 
       setData(blogContent);
     } catch (error) {
@@ -242,7 +246,7 @@ const App = () => {
     }
   };
 
- return (
+  return (
     <>
       <div className="flex w-full min-h-screen bg-black text-white">
 
@@ -416,7 +420,7 @@ const App = () => {
             </div>
           ) : (
             // ===== Output Screen =====
-           <div className="p-6 pl-12">
+            <div className="p-6 pl-12">
 
               <p className="font-bold text-[20px] mb-7 flex items-center gap-[10px]">
                 <i
