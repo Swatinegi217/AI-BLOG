@@ -1,5 +1,3 @@
-// backend/routes/payment.js
-
 const express = require('express');
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
@@ -14,17 +12,18 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Create Razorpay Order
+// ✅ Create Razorpay Order — ₹699
 router.post('/create-order', authMiddleware, async (req, res) => {
   try {
     const options = {
-      amount: 19900, // ₹199 in paise
+      amount: 69900, // ₹699 in paise
       currency: 'INR',
       receipt: `receipt_order_${Date.now()}`,
     };
 
     const order = await razorpay.orders.create(options);
     res.json(order);
+    
   } catch (err) {
     console.error("Razorpay create-order error:", err);
     res.status(500).json({ error: 'Failed to create Razorpay order' });

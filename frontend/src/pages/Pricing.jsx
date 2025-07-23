@@ -65,12 +65,13 @@ const handleSubscribe = async () => {
         <p className="text-gray-600 mb-8">Subscribe to generate unlimited AI blogs and access premium features.</p>
 
         <div className="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-4 rounded-xl text-xl font-semibold mb-6">
-          ₹199/month – Unlimited Blogs 🚀
+          ₹699/month – Unlimited Blogs 🚀
         </div>
 
         <ul className="text-left mb-6 space-y-2 text-gray-700">
           <li>✅ Unlimited AI blog generations</li>
-          <li>✅ WordPress and Dev.to publishing</li>
+          <li>✅ Publish to WordPress, Dev.to, or any custom site (React, PHP, etc.)</li>
+
           <li>✅ Download in PDF/Word</li>
           <li>✅ Schedule your blogs</li>
         </ul>
