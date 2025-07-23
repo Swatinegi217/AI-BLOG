@@ -1,4 +1,4 @@
-import { marked } from "marked"; // add this at top
+import { marked } from "marked";
 
 export const publishToWordpress = async ({
   data,
@@ -17,14 +17,15 @@ export const publishToWordpress = async ({
     const title = extractTitle(data);
     const cleanedContent = (editedContent || data)
       .split("\n")
-      .filter(line =>
-        !line.toLowerCase().startsWith("**meta description") &&
-        !line.toLowerCase().startsWith("**keywords") &&
-        !line.toLowerCase().startsWith("**slug")
+      .filter(
+        (line) =>
+          !line.toLowerCase().startsWith("**meta description") &&
+          !line.toLowerCase().startsWith("**keywords") &&
+          !line.toLowerCase().startsWith("**slug")
       )
       .join("\n");
 
-    const htmlContent = marked(cleanedContent); // ✅ Convert to HTML
+    const htmlContent = marked(cleanedContent);
 
     const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/wordpress/publish`, {
       method: "POST",
@@ -33,8 +34,8 @@ export const publishToWordpress = async ({
         title,
         markdown: htmlContent,
         tags: ["ai", "seo", "blog"],
-        image: imageURL
-      })
+        image: imageURL,
+      }),
     });
 
     const result = await res.json();

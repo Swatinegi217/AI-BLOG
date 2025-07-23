@@ -1,13 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const fetch = require('node-fetch');
-const unfluff = require('unfluff');
 const User = require('../models/User');
 const authMiddleware = require('../utils/authMiddleware');
+
 require('dotenv').config();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY); // ✅ From .env
 
 router.post("/generate", authMiddleware, async (req, res) => {
   const { topic, links = [] } = req.body;
@@ -16,7 +15,7 @@ router.post("/generate", authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(userId);
 
-    // Free usage limit check (unless admin)
+    // ✅ Allow unlimited blogs for admin
     if (!user.isAdmin && !user.isSubscribed) {
       if (user.blogCount >= 2) {
         return res.status(403).json({ error: "Free blog limit reached" });
@@ -25,50 +24,31 @@ router.post("/generate", authMiddleware, async (req, res) => {
       await user.save();
     }
 
-    // Extract content from all links
-    const linkSummaries = [];
-
-    for (const url of links) {
-      try {
-        const response = await fetch(url);
-        const html = await response.text();
-        const data = unfluff(html);
-        linkSummaries.push(`Title: ${data.title}\nSummary: ${data.text.slice(0, 300)}...`);
-      } catch (error) {
-        console.warn(`❌ Failed to process link: ${url}`, error.message);
-      }
-    }
-
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
     const prompt = `
-You are an expert SEO blog writer and AI content strategist.
+      You are an expert SEO blog writer and AI content strategist.
+      Write a complete blog post on the topic: ${topic}.
+      Use these reference links (if helpful): ${links.join(', ')}.
+      Return the blog in Markdown format...
 
-Write a detailed blog post on: **${topic}**
-
-Use the following summaries extracted from reference links as research:
-${linkSummaries.join("\n\n")}
-
-✅ Return the blog in Markdown format
-✅ Include:
-- Title (h1)
-- Meta Description (160 char)
-- Keywords (comma-separated)
-- Slug (URL-friendly)
-- Introduction
-- At least 3 Subheadings (##)
-- Conclusion with CTA
-- Hashtags (e.g., #ai #seo #blog)
-
-Do **not** include HTML or JSON. Only Markdown format.
+      ✅ Title (h1)
+      ✅ Meta Description (160 char)
+      ✅ Keywords (comma-separated)
+      ✅ Slug (URL-friendly)
+      ✅ Introduction
+      ✅ At least 3 Subheadings (##)
+      ✅ Conclusion with CTA
+      ✅ Hashtags (e.g., #ai #seo #blog)
+      ✅ No JSON or HTML, only Markdown
     `;
 
     const result = await model.generateContent(prompt);
-    const content = await result.response.text();
+    const response = await result.response;
+    const content = response.text();
 
     return res.json({ content });
   } catch (err) {
-    console.error("🚨 Blog generation failed:", err);
+    console.error("Generation error:", err);
     return res.status(500).json({ error: "Blog generation failed" });
   }
 });
