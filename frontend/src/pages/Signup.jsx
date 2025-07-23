@@ -1,7 +1,6 @@
 // src/components/Signup.jsx
 import React, { useState, useRef } from "react";
 
-
 const Signup = () => {
   const [form, setForm] = useState({
     name: "",
@@ -23,7 +22,7 @@ const Signup = () => {
     if (!form.email) return alert("Please enter an email first");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/send-verification", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/send-verification`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: form.email }),
@@ -31,11 +30,9 @@ const Signup = () => {
 
       const data = await res.json();
       if (res.ok) {
-       codeRef.current = data.code; // ✅ this stores the code immediately
-
-
+        codeRef.current = data.code;
         alert("📩 Code sent! Check console for preview.");
-        if (data.previewURL) window.open(data.previewURL, "_blank"); // for Ethereal
+        if (data.previewURL) window.open(data.previewURL, "_blank");
         console.log("📨 Email Preview URL:", data.previewURL);
       } else {
         alert(data.message || "Failed to send code");
@@ -47,20 +44,20 @@ const Signup = () => {
   };
 
   const verifyCode = () => {
-  if (verificationCode === codeRef.current) {
-    setIsVerified(true);
-    alert("✅ Email verified successfully!");
-  } else {
-    alert("❌ Incorrect verification code.");
-  }
-};
+    if (verificationCode === codeRef.current) {
+      setIsVerified(true);
+      alert("✅ Email verified successfully!");
+    } else {
+      alert("❌ Incorrect verification code.");
+    }
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!isVerified) return alert("Please verify your email first!");
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/signup", {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
