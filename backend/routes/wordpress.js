@@ -5,6 +5,7 @@ const Blog = require("../models/Blog");
 const authMiddleware = require("../utils/authMiddleware");
 require("dotenv").config();
 
+// ✅ Publish instantly to WordPress
 router.post("/publish", async (req, res) => {
   try {
     console.log("📥 Incoming publish body:", req.body);
@@ -15,7 +16,10 @@ router.post("/publish", async (req, res) => {
       return res.status(400).json({ message: "Missing title or content" });
     }
 
-    const content = image ? `<img src="${image}" /><br/>${markdown}` : markdown;
+    // ✅ Only prepend image if provided (and not null)
+    const content = image
+      ? `<img src="${image}" style="max-width:100%;height:auto;" /><br/>${markdown}`
+      : markdown;
 
     const response = await axios.post(
       `${process.env.WP_SITE}/wp-json/wp/v2/posts`,
@@ -48,6 +52,11 @@ router.post("/publish", async (req, res) => {
   }
 });
 
+
+
+
+// ✅ Schedule blog for future publishing
+
 router.post("/schedule", authMiddleware, async (req, res) => {
   const { title, markdown, tags, scheduledAt, image } = req.body;
 
@@ -67,9 +76,10 @@ router.post("/schedule", authMiddleware, async (req, res) => {
 
     res.status(201).json({ message: "Blog scheduled", blog });
   } catch (err) {
-    console.error("❌ Error scheduling blog:", err);
-    res.status(500).json({ error: "Failed to schedule blog" });
-  }
+  console.error("❌ Error scheduling blog:", err);
+  res.status(500).json({ error: "Failed to schedule blog" });
+}
 });
+
 
 module.exports = router;

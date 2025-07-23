@@ -27,6 +27,10 @@ export const publishToWordpress = async ({
 
     const htmlContent = marked(cleanedContent);
 
+    // ✅ Check if image is already included in the markdown
+    const imageAlreadyInMarkdown =
+      cleanedContent.includes(imageURL) || cleanedContent.includes("![](") || cleanedContent.includes("![Alt](");
+
     const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/wordpress/publish`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -34,7 +38,7 @@ export const publishToWordpress = async ({
         title,
         markdown: htmlContent,
         tags: ["ai", "seo", "blog"],
-        image: imageURL,
+        image: imageAlreadyInMarkdown ? null : imageURL,
       }),
     });
 
