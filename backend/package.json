@@ -29,5 +29,8 @@
     "nodemailer": "^7.0.4",
     "razorpay": "^2.9.6",
     "unfluff": "^3.2.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
   }
 }
