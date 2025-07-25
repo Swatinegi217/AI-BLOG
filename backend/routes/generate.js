@@ -48,24 +48,30 @@ Return the blog in **Markdown** format with:
       `;
     } else if (promptType === "B") {
       prompt = `
-You're a casual, witty, and insightful tech blogger.
-Write a fun, human-sounding blog on the topic: ${topic}.
+You're a witty, insightful tech blogger who loves breaking things down for everyday readers.
+
+Write a fun and highly engaging **comparison blog** on the topic: ${topic}.
 You may use these links if helpful: ${links.join(', ')}
 
-Write in a relaxed tone. Be informal, engaging, and interesting.
-Avoid traditional SEO formatting. Use storytelling, humor, and personality.
+Keep the tone relaxed, human, and humorous—but loaded with clear, structured, informative comparisons.
 
-Return the blog in **Markdown** format with:
+Structure the blog like this:
 
-✅ Fun Title
-✅ Hook-based Introduction
-✅ Creative Subheadings (##)
-✅ Personal-style Conclusion
-✅ Relevant Hashtags
-✅ Hashtags (e.g., #ai #seo #blog)
-✅ No HTML or JSON, just Markdown
+1. 🚗 Pricing & Variants
+2. ⚡ Power & Range
+3. 🛠️ Features & Build
+4. 🏙️ Use Cases & Audience Fit
+5. 🥇 Which One's Right for You?
+6. 🧭 Final Verdict with emoji-based summary
+7. 🌟 TL;DR — bullet summary with emojis and pricing/specs
 
-      `;
+Write in **Markdown format** only. Use creative section headings (##), bullets, and emojis. Avoid HTML or JSON.
+
+✅ Make it fun  
+✅ Add personality  
+✅ Still informative  
+✅ Only Markdown output
+`;
     }
 
     const result = await model.generateContent(prompt);
