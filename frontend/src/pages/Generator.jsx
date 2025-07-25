@@ -1,16 +1,16 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import "../App.css";
-import { IoMdArrowRoundBack } from 'react-icons/io';
+import { IoMdArrowRoundBack } from "react-icons/io";
 
-import { DNA } from 'react-loader-spinner';
-import Markdown from 'react-markdown';
+import { DNA } from "react-loader-spinner";
+import Markdown from "react-markdown";
 import { downloadBlog } from "../component/downloadBlog";
 
 import { publishToWordpress } from "../component/PublishBlog";
 import { FaRegCalendarAlt } from "react-icons/fa";
 import remarkGfm from "remark-gfm";
 import Sidebar from "../component/Sidebar";
-import SubscriptionModal from '../component/SubscriptionModal';
+import SubscriptionModal from "../component/SubscriptionModal";
 
 const IMGBB_API_KEY = "18539e79130230a4a5139d566b0360cc";
 
@@ -25,7 +25,7 @@ const App = () => {
   const blogRef = useRef(null);
   const [editMode, setEditMode] = useState(false);
   const [editedContent, setEditedContent] = useState("");
-  const [downloadFormat, setDownloadFormat] = useState('pdf');
+  const [downloadFormat, setDownloadFormat] = useState("pdf");
   const dateInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [imageURL, setImageURL] = useState("");
@@ -34,23 +34,34 @@ const App = () => {
   const [savedBlogs, setSavedBlogs] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [promptType, setPromptType] = useState("A");
+
+
+
+  const togglePromptType = () => {
+    setPromptType((prev) => (prev === "A" ? "B" : "A"));
+  };
 
 
   async function generateBlogContent() {
     setLoading(true);
     setScreen(2);
     try {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/blog/generate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          topic: text,
-          links: links.filter(link => link),
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/blog/generate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            topic: text,
+            links: links.filter((link) => link),
+            promptType,
+          }),
+        }
+      );
 
       if (response.status === 403) {
         setShowModal(true);
@@ -62,11 +73,11 @@ const App = () => {
 
       if (imageURL) {
         const imageMarkdown = `\n\n![Uploaded Image](${imageURL})\n\n`;
-        const lines = blogContent.split('\n');
+        const lines = blogContent.split("\n");
 
         // Check if image already exists in content
         if (!blogContent.includes(imageURL)) {
-          const introIndex = lines.findIndex(line =>
+          const introIndex = lines.findIndex((line) =>
             line.trim().toLowerCase().startsWith("## introduction")
           );
 
@@ -80,14 +91,13 @@ const App = () => {
             }
             lines.splice(insertIndex, 0, imageMarkdown);
           } else {
-            const titleIndex = lines.findIndex(line => line.startsWith("# "));
+            const titleIndex = lines.findIndex((line) => line.startsWith("# "));
             lines.splice(titleIndex + 1, 0, imageMarkdown);
           }
 
-          blogContent = lines.join('\n');
+          blogContent = lines.join("\n");
         }
       }
-
 
       setData(blogContent);
     } catch (error) {
@@ -117,28 +127,32 @@ const App = () => {
     try {
       const title = extractTitle(data);
       const cleanedContent = (editedContent || data)
-        .split('\n')
-        .filter(line =>
-          !line.toLowerCase().startsWith('**meta description') &&
-          !line.toLowerCase().startsWith('**keywords') &&
-          !line.toLowerCase().startsWith('**slug')
+        .split("\n")
+        .filter(
+          (line) =>
+            !line.toLowerCase().startsWith("**meta description") &&
+            !line.toLowerCase().startsWith("**keywords") &&
+            !line.toLowerCase().startsWith("**slug")
         )
-        .join('\n');
+        .join("\n");
 
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/wordpress/schedule`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          title,
-          markdown: cleanedContent,
-          tags: ["ai", "blog", "seo"],
-          scheduledAt: istTime.toISOString(),
-          image: imageURL,
-        }),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/wordpress/schedule`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            title,
+            markdown: cleanedContent,
+            tags: ["ai", "blog", "seo"],
+            scheduledAt: istTime.toISOString(),
+            image: imageURL,
+          }),
+        }
+      );
 
       const resData = await response.json();
       if (!response.ok) throw new Error(resData?.error || "Unknown error");
@@ -160,15 +174,18 @@ const App = () => {
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
       reader.onloadend = async () => {
-        const base64 = reader.result.split(',')[1];
+        const base64 = reader.result.split(",")[1];
         const formData = new FormData();
         formData.append("image", base64);
 
         try {
-          const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
-            method: "POST",
-            body: formData,
-          });
+          const res = await fetch(
+            `https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`,
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
 
           const data = await res.json();
           if (data?.data?.url) {
@@ -196,26 +213,26 @@ const App = () => {
     };
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/saved/save`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(blogToSave),
-      });
-
+      const res = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/saved/save`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(blogToSave),
+        }
+      );
 
       const saved = await res.json();
-      setSavedBlogs(prev => [...prev, saved]);
+      setSavedBlogs((prev) => [...prev, saved]);
       alert("✅ Blog saved!");
     } catch (err) {
       console.error("Save failed:", err);
       alert("Save failed");
     }
   };
-
-
 
   const handleLogout = () => {
     localStorage.removeItem("token"); // if you're using JWT
@@ -229,7 +246,6 @@ const App = () => {
     setScreen(2); // switch to output screen
   };
 
-
   const handleDeleteBlog = async (blogId) => {
     try {
       await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/blogs/${blogId}`, {
@@ -239,7 +255,7 @@ const App = () => {
         },
       });
 
-      setSavedBlogs(prev => prev.filter(blog => blog._id !== blogId));
+      setSavedBlogs((prev) => prev.filter((blog) => blog._id !== blogId));
     } catch (err) {
       console.error("Error deleting blog:", err);
       alert("Failed to delete blog");
@@ -249,7 +265,6 @@ const App = () => {
   return (
     <>
       <div className="flex w-full min-h-screen bg-black text-white">
-
         {/* Mobile Sidebar Toggle Button */}
         <div className="sm:hidden fixed top-4 left-4 z-50">
           <button onClick={() => setSidebarOpen(true)}>
@@ -290,7 +305,6 @@ const App = () => {
             onClick={() => setSidebarOpen(false)}
           ></div>
         )}
-
 
         {/* Main Content */}
         <div className="flex flex-col sm:ml-72 w-full items-center justify-center">
@@ -333,7 +347,10 @@ const App = () => {
 
                     {/* Reference Links */}
                     {links.map((link, index) => (
-                      <div key={index} className="w-full flex items-center gap-2">
+                      <div
+                        key={index}
+                        className="w-full flex items-center gap-2"
+                      >
                         <input
                           type="text"
                           placeholder={`Reference Link #${index + 1}`}
@@ -421,14 +438,13 @@ const App = () => {
           ) : (
             // ===== Output Screen =====
             <div className="p-6 pl-12">
-
               <p className="font-bold text-[20px] mb-7 flex items-center gap-[10px]">
                 <i
                   onClick={() => setScreen(1)}
                   className="cursor-pointer flex flex-col items-center justify-center w-[40px] h-[40px] rounded-[50%] transition-all duration-300 hover:bg-zinc-800"
                 >
                   <IoMdArrowRoundBack />
-                </i>{' '}
+                </i>{" "}
                 Output:
               </p>
 
@@ -447,14 +463,19 @@ const App = () => {
                   <Markdown
                     remarkPlugins={[remarkGfm]}
                     components={{
-                      img: ({ node, ...props }) => {
-                        if (!props.src || props.src.trim() === '') return null;
+                      img: ({ ...props }) => {
+                        // ✅ cleaned
+                        if (!props.src || props.src.trim() === "") return null;
                         return (
                           <img
                             {...props}
-                            alt={props.alt || 'Image'}
+                            alt={props.alt || "Image"}
                             className="rounded-xl my-4 mx-auto"
-                            style={{ display: 'block', width: '500px', height: 'auto' }}
+                            style={{
+                              display: "block",
+                              width: "500px",
+                              height: "auto",
+                            }}
                           />
                         );
                       },
@@ -468,7 +489,10 @@ const App = () => {
               {/* Buttons */}
               <div className="flex gap-4 flex-wrap items-center mt-6">
                 <button
-                  onClick={generateBlogContent}
+                   onClick={() => {
+                  togglePromptType(); 
+                  generateBlogContent();
+                }}
                   className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-5 py-2 rounded-xl shadow-md"
                 >
                   🔄 Re-Generate
@@ -492,21 +516,34 @@ const App = () => {
                     })
                   }
                   disabled={!data}
-                  className={`px-5 py-2 rounded-xl font-semibold shadow-md ${data
-                    ? 'bg-green-600 text-white hover:bg-green-700'
-                    : 'bg-gray-400 text-white cursor-not-allowed'
-                    }`}
+                  className={`px-5 py-2 rounded-xl font-semibold shadow-md ${
+                    data
+                      ? "bg-green-600 text-white hover:bg-green-700"
+                      : "bg-gray-400 text-white cursor-not-allowed"
+                  }`}
                 >
                   ⬇️ Download
                 </button>
 
                 <button
                   onClick={() =>
-                    publishToWordpress({ data, editedContent, imageURL, setIsPublishing })
+                    publishToWordpress({
+                      data,
+                      editedContent,
+                      imageURL,
+                      setIsPublishing,
+                    })
                   }
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-xl shadow-md"
+                  disabled={isPublishing} // ✅ using isPublishing to disable button
+                  className={`font-semibold px-5 py-2 rounded-xl shadow-md ${
+                    isPublishing
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-blue-700 text-white"
+                  }`}
                 >
-                  🚀 Publish to WordPress
+                  {isPublishing
+                    ? "🚀 Publishing..."
+                    : "🚀 Publish to WordPress"}
                 </button>
 
                 <button
@@ -515,12 +552,13 @@ const App = () => {
                     else setEditedContent(data);
                     setEditMode(!editMode);
                   }}
-                  className={`px-5 py-2 rounded-xl font-semibold shadow-md ${editMode
-                    ? 'bg-green-800 text-white hover:bg-green-900'
-                    : 'bg-orange-600 text-white hover:bg-orange-700'
-                    }`}
+                  className={`px-5 py-2 rounded-xl font-semibold shadow-md ${
+                    editMode
+                      ? "bg-green-800 text-white hover:bg-green-900"
+                      : "bg-orange-600 text-white hover:bg-orange-700"
+                  }`}
                 >
-                  ✏️ {editMode ? 'Save' : 'Edit Blog'}
+                  ✏️ {editMode ? "Save" : "Edit Blog"}
                 </button>
 
                 {/* Schedule Blog */}
@@ -541,9 +579,9 @@ const App = () => {
 
                   {scheduledAt && (
                     <span className="text-white font-medium">
-                      {new Date(scheduledAt).toLocaleString('en-IN', {
-                        dateStyle: 'medium',
-                        timeStyle: 'short',
+                      {new Date(scheduledAt).toLocaleString("en-IN", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
                       })}
                     </span>
                   )}
@@ -575,7 +613,6 @@ const App = () => {
           {showModal && (
             <SubscriptionModal onClose={() => setShowModal(false)} />
           )}
-
         </div>
       </div>
     </>
@@ -583,4 +620,3 @@ const App = () => {
 };
 
 export default App;
-
