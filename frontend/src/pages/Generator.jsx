@@ -36,12 +36,9 @@ const App = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [promptType, setPromptType] = useState("A");
 
-
-
   const togglePromptType = () => {
     setPromptType((prev) => (prev === "A" ? "B" : "A"));
   };
-
 
   async function generateBlogContent() {
     setLoading(true);
@@ -460,39 +457,41 @@ const App = () => {
                     className="w-full min-h-[400px] p-4 bg-black border border-gray-600 text-white rounded-md"
                   />
                 ) : (
-                  <Markdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      img: ({ ...props }) => {
-                        // ✅ cleaned
-                        if (!props.src || props.src.trim() === "") return null;
-                        return (
-                          <img
-                            {...props}
-                            alt={props.alt || "Image"}
-                            className="rounded-xl my-4 mx-auto"
-                            style={{
-                              display: "block",
-                              width: "500px",
-                              height: "auto",
-                            }}
-                          />
-                        );
-                      },
-                    }}
-                  >
-                    {editedContent || data}
-                  </Markdown>
+                  <div className="prose prose-invert max-w-none bg-white text-black p-6 rounded-lg">
+                    <Markdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        img: ({ ...props }) => {
+                          if (!props.src || props.src.trim() === "")
+                            return null;
+                          return (
+                            <img
+                              {...props}
+                              alt={props.alt || "Image"}
+                              className="rounded-xl my-4 mx-auto"
+                              style={{
+                                display: "block",
+                                width: "500px",
+                                height: "auto",
+                              }}
+                            />
+                          );
+                        },
+                      }}
+                    >
+                      {editedContent || data}
+                    </Markdown>
+                  </div>
                 )}
               </div>
 
               {/* Buttons */}
               <div className="flex gap-4 flex-wrap items-center mt-6">
                 <button
-                   onClick={() => {
-                  togglePromptType(); 
-                  generateBlogContent();
-                }}
+                  onClick={() => {
+                    togglePromptType();
+                    generateBlogContent();
+                  }}
                   className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-5 py-2 rounded-xl shadow-md"
                 >
                   🔄 Re-Generate
