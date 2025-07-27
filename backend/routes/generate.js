@@ -46,44 +46,35 @@ Return the blog in **Markdown** format with:
 ✅ Hashtags (e.g., #ai #seo #blog)
 ✅ No JSON or HTML, only Markdown
       `;
-
-
-      
     } else if (promptType === "B") {
       prompt = `
-You're a professional blog writer and expert product reviewer.
 
-Write a detailed and well-structured comparison blog on the topic: ${topic}.
-Use the following format:
+You are a professional blog writer and content strategist.
 
-1. 🚗 **Pricing & Variants**  
-Compare base and top variant prices for both products. Include notable variant names.
+Write a detailed, well-formatted blog post on the topic: **${topic}**.
+Use a clean, informative tone. The blog should follow a modern layout that's easy to read and visually structured.
 
-2. ⚡ **Powertrain & Range**  
-Compare motor power, torque, battery size, certified vs real-world range, and charging speed.
+### 🧱 Format Requirements:
+- Use **Markdown format only**
+- Use clear **section headings** (##)
+- Use **tables** when comparing multiple items (use | and --- syntax)
+- Use **bullet points** where necessary
+- Use **emojis** to make it engaging and skimmable
+- Keep tone: **professional, confident, modern**
 
-3. 🛠️ **Features & Build Quality**  
-Cover safety features, digital cluster, suspension, frame design, seating, and highlights.
+### 🛠️ Output Should Include:
+- ✅ A clear and bold **Title**
+- ✅ Strong, engaging **Introduction**
+- ✅ At least **3–5 main sections** with proper headings
+- ✅ Use tables where useful (e.g., comparisons, specs)
+- ✅ End with a **TL;DR** summary or Final Thoughts
+- ✅ Output must be in **Markdown only** (no HTML, no JSON)
 
-4. 🏙️ **Use Cases & Market Fit**  
-Who should use each product? Compare suitability for urban vs rural, fleets vs logistics.
+### 💡 Notes:
+- If the topic includes comparisons, use **Markdown tables**
+- If not, just break down the topic into clear, logical sections
+- Use these links as supporting sources if relevant: ${links.join(", ")}
 
-5. 🥇 **Which One Should You Choose?**  
-Create a side-by-side table comparing use-case-based needs (torque, price, ride quality, etc.).
-
-6. 🧭 **Final Verdict**  
-Summarize clearly who should choose what — with reasons and confidence.
-
-7. 🌟 **TL;DR**  
-Bullet summary with emojis + key specs (₹price, power, range, key feature). Keep it short and useful.
-
-Guidelines:
-- Write in **Markdown only**
-- No HTML or JSON
-- Tone: informative, confident, clear
-- Use emojis and formatting like headings (##), bold text, and tables
-- Keep it engaging, but not casual or humorous
-- Use data from these links if helpful: ${links.join(', ')}
 
 
 `;
