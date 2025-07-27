@@ -1,10 +1,10 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const User = require('../models/User');
-const authMiddleware = require('../utils/authMiddleware');
+const User = require("../models/User");
+const authMiddleware = require("../utils/authMiddleware");
 
-require('dotenv').config();
+require("dotenv").config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
@@ -32,7 +32,7 @@ router.post("/generate", authMiddleware, async (req, res) => {
       prompt = `
 You are an expert SEO blog writer and AI content strategist.
 Write a complete blog post on the topic: ${topic}.
-Use these reference links (if helpful): ${links.join(', ')}.
+Use these reference links (if helpful): ${links.join(", ")}.
 
 Return the blog in **Markdown** format with:
 
@@ -48,29 +48,29 @@ Return the blog in **Markdown** format with:
       `;
     } else if (promptType === "B") {
       prompt = `
-You're a witty, insightful tech blogger who loves breaking things down for everyday readers.
+You are a professional blog writer and expert product reviewer.
 
-Write a fun and highly engaging **comparison blog** on the topic: ${topic}.
-You may use these links if helpful: ${links.join(', ')}
+Write a detailed, structured comparison blog on the topic: ${topic}. Compare the two products (or vehicles) in-depth across categories. Use a clear, easy-to-read format that is informative and engaging.
 
-Keep the tone relaxed, human, and humorous—but loaded with clear, structured, informative comparisons.
+Use the following structure and formatting:
 
-Structure the blog like this:
+1. 🚗 **Pricing & Variants** – Compare base and top model pricing. Mention variant options.
+2. ⚡ **Performance & Range** – Compare power output, battery capacity, torque, certified and real-world range, and charging times.
+3. 🛠️ **Features & Build Quality** – Compare design, suspension, build materials, display, comfort, and standout features.
+4. 🏙️ **Use Cases & Audience Fit** – Who is each product best for? Rural, urban, fleet, logistics, personal use, etc.
+5. 🥇 **Which One Should You Choose?** – Present a clear table or list summarizing what type of buyer should choose which one.
+6. 🧭 **Final Verdict** – Summarize in a few lines which product wins in which category and why.
+7. 🌟 **TL;DR** – A short bullet summary with emojis, price, power, range, and recommendation.
 
-1. 🚗 Pricing & Variants
-2. ⚡ Power & Range
-3. 🛠️ Features & Build
-4. 🏙️ Use Cases & Audience Fit
-5. 🥇 Which One's Right for You?
-6. 🧭 Final Verdict with emoji-based summary
-7. 🌟 TL;DR — bullet summary with emojis and pricing/specs
+Guidelines:
+- Use clear headings and bullet points
+- Use emojis to make sections more visually engaging
+- Write in **Markdown format only**
+- Tone: Informative, professional, confident — not casual or humorous
+- Do NOT return HTML or JSON
 
-Write in **Markdown format** only. Use creative section headings (##), bullets, and emojis. Avoid HTML or JSON.
+You may use these links if helpful: ${links.join(", ")}
 
-✅ Make it fun  
-✅ Add personality  
-✅ Still informative  
-✅ Only Markdown output
 `;
     }
 
